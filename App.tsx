@@ -5,8 +5,16 @@
  * @format
  */
 
+import './global.css';
+
 import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -17,8 +25,9 @@ function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <View className="flex-1 justify-center items-center bg-blue-500">
+        <Text className="text-white text-2xl font-bold">Hello NativeWind!</Text>
+      </View>
     </SafeAreaProvider>
   );
 }
