@@ -1,62 +1,40 @@
-// // src/api/client.ts
-// import { useAuthStore } from "@/stores/auth.store";
-// import axios, { InternalAxiosRequestConfig } from "axios";
-// import * as SecureStore from "expo-secure-store";
+// src/api/client.ts
+import { useAuthStore } from '@/stores/auth.store';
+import axios, { InternalAxiosRequestConfig } from 'axios';
+import Config from 'react-native-config';
 
-// // const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+const apiUrl = Config.API_URL;
 
-// const api = axios.create({
-//   baseURL: apiUrl,
-//   timeout: 15000,
-// });
+const api = axios.create({
+  baseURL: apiUrl,
+  timeout: 15000,
+});
 
-// // GET TOKEN
-// async function getToken() {
-//   return await SecureStore.getItemAsync("token");
-// }
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const token = useAuthStore.getState().token;
 
-// async function getRefreshToken() {
-//   return await SecureStore.getItemAsync("refreshToken");
-// }
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+  return config;
+});
 
-// // SAVE TOKEN
-// async function saveToken(token: string) {
-//   await SecureStore.setItemAsync("token", token);
-// }
+api.interceptors.response.use(
+  response => response,
 
-// // REMOVE TOKEN
-// async function clearAuth() {
-//   await SecureStore.deleteItemAsync("token");
-//   await SecureStore.deleteItemAsync("refreshToken");
-// }
+  async error => {
+    const status = error.response?.status;
+    const message =
+      error.response?.data?.message || error.message || 'Terjadi kesalahan';
+    // --- 401 Unauthorized ---
+    if (error.response?.status === 401) {
+      const { logout } = useAuthStore.getState();
 
-// api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-//   const token = await getToken();
-//   if (token) {
-//     config.headers.set("Authorization", `Bearer ${token}`);
-//   }
-//   return config;
-// });
+      logout();
+    }
 
-// api.interceptors.response.use(
-//   (response) => response,
+    return Promise.reject({ status, message, originalError: error });
+  },
+);
 
-//   async (error) => {
-//     const status = error.response?.status;
-//     const message =
-//       error.response?.data?.message || error.message || "Terjadi kesalahan";
-//     // --- 401 Unauthorized ---
-//     if (error.response?.status === 401) {
-//       const { logout } = useAuthStore.getState();
-
-//       // optional: refresh token logic
-//       // ...
-
-//       logout();
-//     }
-
-//     return Promise.reject({ status, message, originalError: error });
-//   }
-// );
-
-// export default api;
+export default api;
