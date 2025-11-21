@@ -19,15 +19,20 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
-      <View className="flex-1 justify-center items-center bg-blue-500">
-        <Text className="text-white text-2xl font-bold">Hello NativeWind!</Text>
-      </View>
+      <GestureHandlerRootView>
+        <View className="flex-1 justify-center items-center bg-blue-500">
+          <Text className="text-white text-2xl font-bold">
+            Hello NativeWind!
+          </Text>
+        </View>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }
