@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, View, Pressable, Text } from 'react-native';
 import Avatar from '@/components/Avatar';
 
-export default function AccountScreen() {
+export default function SettingPage() {
   const menuItems = [
     { label: 'Ubah Akun', icon: '👤' },
     { label: 'Riwayat Transaksi', icon: '📄' },

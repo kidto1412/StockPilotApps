@@ -22,18 +22,26 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { RootNavigator } from '@/navigations/RootNavigator';
+import { LoadingProvider } from '@/providers/loading.provider';
+import { API_URL } from '@env';
+import { ToastProvider } from '@/providers/toast.provider';
+console.log('ENV CHECK:', API_URL);
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
-      <GestureHandlerRootView>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
+    <GestureHandlerRootView>
+      <SafeAreaProvider>
+        <LoadingProvider>
+          <ToastProvider>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </ToastProvider>
+        </LoadingProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

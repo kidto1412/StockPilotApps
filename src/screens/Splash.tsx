@@ -1,4 +1,4 @@
-import { RootStackParamList } from '@/types/root.type';
+import { RootStackParamList } from '@/types/navigation.type';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { Image, View } from 'react-native';
@@ -8,7 +8,7 @@ type SplashProps = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 export default function SplashScreen({ navigation }: SplashProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('Login'); // ganti ke screen Login
+      navigation.replace('Auth'); // ganti ke screen Login
     }, 2000);
 
     return () => clearTimeout(timer);

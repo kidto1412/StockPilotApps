@@ -1,9 +1,9 @@
 // src/api/client.ts
 import { useAuthStore } from '@/stores/auth.store';
 import axios, { InternalAxiosRequestConfig } from 'axios';
-import Config from 'react-native-config';
+import { API_URL } from '@env';
 
-const apiUrl = Config.API_URL;
+const apiUrl = API_URL;
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -12,7 +12,7 @@ const api = axios.create({
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = useAuthStore.getState().token;
-
+  console.log(apiUrl);
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`);
   }

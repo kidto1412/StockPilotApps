@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 
-export default function ChangePass() {
+export default function Report() {
   return (
     <View>
-      <Text>ChangePass</Text>
+      <Text>Report</Text>
     </View>
   );
 }

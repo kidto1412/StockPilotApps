@@ -13,6 +13,7 @@ export default function Login() {
   const { login } = useAuth();
 
   const onSubmit = async () => {
+    console.log('login');
     await login(username, password);
   };
 

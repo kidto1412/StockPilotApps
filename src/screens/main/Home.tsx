@@ -23,8 +23,13 @@ export default function HomePage() {
 
         {/* Notification Icon */}
         <View className="relative">
-          <Badge count={3} size={18} color="red" />
           <ShoppingCart size={24} color="black" />
+
+          <View
+            style={{ position: 'absolute', top: -4, right: 10, zIndex: 10 }}
+          >
+            <Badge count={3} size={18} color="red" />
+          </View>
         </View>
       </View>
 
