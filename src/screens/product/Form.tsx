@@ -2,7 +2,7 @@ import Button from '@/components/button';
 
 import ImageUploadCard from '@/components/ImagePicker';
 
-import Input from '@/components/input';
+import Input from '@/components/Input';
 
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

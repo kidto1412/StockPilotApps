@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import FilterScroll from '@/components/FilterScroll';
-import Input from '@/components/input';
+import Input from '@/components/Input';
 import VerticalProduct from '@/components/VerticalProduct';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

@@ -1,37 +1,24 @@
-import { useAuthStore } from "@/stores/auth.store";
-import { NavigationContainer } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
-import AppStack from "./stacks/AppStack";
-import AuthStack from "./stacks/AuthStack";
+import Login from '@/screens/auth/Login';
+import Register from '@/screens/auth/Register';
+import HomePage from '@/screens/main/Home';
+import SplashScreen from '@/screens/Splash';
+import { RootStackParamList } from '@/types/root.type';
+// import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-export default function RootNavigator() {
-  const token = useAuthStore((state) => state.token);
-  const [loading, setLoading] = useState(true);
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-  // Untuk memastikan SecureStore selesai load
-  useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
+export function RootNavigator() {
   return (
-    <NavigationContainer>
-      {token ? <AppStack /> : <AuthStack />}
-    </NavigationContainer>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false, // mematikan header untuk semua screen
+      }}
+    >
+      <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="Home" component={HomePage} />
+    </Stack.Navigator>
   );
 }

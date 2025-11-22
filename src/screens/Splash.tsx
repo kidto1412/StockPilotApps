@@ -1,25 +1,26 @@
-import { useNavigation } from '@react-navigation/native';
-// import { useRouter } from "expo-router";
+import { RootStackParamList } from '@/types/root.type';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Image, View } from 'react-native';
 
-export default function SplashScreen() {
-  // const router = useNavigation<AppNavigation>();
+type SplashProps = NativeStackScreenProps<RootStackParamList, 'Splash'>;
+
+export default function SplashScreen({ navigation }: SplashProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      // router.navigate('Login');
+      navigation.replace('Login'); // ganti ke screen Login
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      {/* <Image
-        source={require("@/assets/images/logo.png")}
+      <Image
+        source={require('@/assets/img/logo.png')}
         className="w-40 h-40 mb-4"
-      /> */}
-      <Text className="text-lg font-bold text-gray-700">MOBILE POS</Text>
+      />
+      {/* <Text className="text-lg font-bold text-gray-700">MOBILE POS</Text> */}
     </View>
   );
 }

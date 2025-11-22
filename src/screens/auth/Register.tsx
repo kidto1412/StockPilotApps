@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Input from '@/components/input';
-import Button from '@/components/button';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
 import SelectBox from '@/components/SelectBox';
 
 export default function Register() {

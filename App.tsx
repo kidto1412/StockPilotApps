@@ -20,6 +20,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import { RootNavigator } from '@/navigations/RootNavigator';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -27,11 +29,9 @@ function App() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
-        <View className="flex-1 justify-center items-center bg-blue-500">
-          <Text className="text-white text-2xl font-bold">
-            Hello NativeWind!
-          </Text>
-        </View>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

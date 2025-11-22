@@ -1,4 +1,4 @@
-import Input from '@/components/input';
+import Input from '@/components/Input';
 import ListUserCard from '@/components/ListUser';
 import { useNavigation } from '@react-navigation/native';
 // import { useRouter } from "expo-router";

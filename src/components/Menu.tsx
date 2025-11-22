@@ -1,17 +1,26 @@
 import React from 'react';
 import { Pressable, View, Text } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {
+  ShoppingCart,
+  Box,
+  Users,
+  User,
+  Package,
+  BarChart2,
+  Tag,
+  Store,
+} from 'lucide-react-native';
 
 interface ItemProps {
   label: string;
-  icon: string;
+  icon: React.FC<{ size?: number; color?: string }>;
   onPress?: () => void;
 }
 
-const MenuItem = ({ label, icon, onPress }: ItemProps) => (
+const MenuItem = ({ label, icon: Icon, onPress }: ItemProps) => (
   <Pressable onPress={onPress} className="w-1/2 p-2">
     <View className="bg-white rounded-xl p-5 shadow flex items-center justify-center">
-      <Ionicons name={icon} size={32} color="#6C63FF" />
+      <Icon size={32} color="#6C63FF" />
       <Text className="mt-2 text-base font-medium text-gray-700">{label}</Text>
     </View>
   </Pressable>
@@ -22,15 +31,19 @@ interface CategoryMenuProps {
 }
 
 export default function CategoryMenu({ onNavigate }: CategoryMenuProps) {
-  const menu = [
-    { label: 'Penjualan', icon: 'cart-outline', path: 'sales' },
-    { label: 'Penyimpanan', icon: 'cube-outline', path: 'storage' },
-    { label: 'Pelanggan', icon: 'people-outline', path: 'customer' },
-    { label: 'Pegawai', icon: 'person-outline', path: 'employee' },
-    { label: 'Produk', icon: 'albums-outline', path: 'product' },
-    { label: 'Laporan', icon: 'bar-chart-outline', path: 'report' },
-    { label: 'Category', icon: 'bar-chart-outline', path: 'category' },
-    { label: 'Store', icon: 'bar-chart-outline', path: 'store' },
+  const menu: {
+    label: string;
+    icon: React.FC<{ size?: number; color?: string }>;
+    path: string;
+  }[] = [
+    { label: 'Penjualan', icon: ShoppingCart, path: 'sales' },
+    { label: 'Penyimpanan', icon: Box, path: 'storage' },
+    { label: 'Pelanggan', icon: Users, path: 'customer' },
+    { label: 'Pegawai', icon: User, path: 'employee' },
+    { label: 'Produk', icon: Package, path: 'product' },
+    { label: 'Laporan', icon: BarChart2, path: 'report' },
+    { label: 'Category', icon: Tag, path: 'category' },
+    { label: 'Store', icon: Store, path: 'store' },
   ];
 
   return (

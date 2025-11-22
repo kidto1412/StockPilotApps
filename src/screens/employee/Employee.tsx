@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { SafeAreaView, View, ScrollView } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-import Button from '@/components/button';
-import Input from '@/components/input';
+import Button from '@/components/Button';
+import Input from '@/components/Input';
 import ListUserCard from '@/components/ListUser';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { useUser } from '@/hooks/user/useUser';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, View, Pressable, Text } from 'react-native';
-import Avatar from '@/components/avatar';
+import Avatar from '@/components/Avatar';
 
 export default function AccountScreen() {
   const menuItems = [

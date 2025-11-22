@@ -4,8 +4,8 @@ import { useUserState } from '@/stores/user.store';
 import { useUser } from '@/hooks/user/useUser';
 import { UserRequest } from '@/interfaces/user.interface';
 import { useToastMessage } from '@/providers/toast.provider';
-import Input from '@/components/input';
-import Button from '@/components/button';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
 
 // Versi sederhana SelectBox
 import SelectBox from '@/components/SelectBox';
