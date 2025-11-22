@@ -1,3 +1,5 @@
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useAuthStore } from '@/stores/auth.store';
 import { RootStackParamList } from '@/types/navigation.type';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
@@ -6,12 +8,26 @@ import { Image, View } from 'react-native';
 type SplashProps = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export default function SplashScreen({ navigation }: SplashProps) {
+  const token = useAuthStore(state => state.token);
+  console.log(token);
+  const { checkToken } = useAuth();
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Auth'); // ganti ke screen Login
-    }, 2000);
+    const verifyToken = async () => {
+      if (!token) {
+        navigation.replace('Auth');
+        return;
+      }
 
-    return () => clearTimeout(timer);
+      const valid = await checkToken();
+
+      if (valid) {
+        navigation.replace('Main'); // langsung ke Main
+      } else {
+        useAuthStore.getState().logout();
+        navigation.replace('Auth');
+      }
+    };
+    verifyToken();
   }, [navigation]);
 
   return (

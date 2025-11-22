@@ -43,5 +43,19 @@ export function useAuth() {
     }
   };
 
-  return { login };
+  const checkToken = async () => {
+    try {
+      const res = await AuthEndpoint.checkToken();
+      console.log(res.data);
+      return res.data;
+    } catch (err) {
+      const message = getErrorMessage(err);
+      showToast(message, 'error');
+
+      // throw err;
+    } finally {
+    }
+  };
+
+  return { login, checkToken };
 }

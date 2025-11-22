@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, Pressable } from 'react-native';
 import Badge from '@/components/Badge';
 import Menu from '@/components/Menu';
 import { ShoppingCart } from 'lucide-react-native';
+import { useAuthStore } from '@/stores/auth.store';
 
 export default function HomePage() {
   return (
