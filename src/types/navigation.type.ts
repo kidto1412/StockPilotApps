@@ -1,3 +1,5 @@
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 export type RootStackParamList = {
   Splash: undefined;
   Auth: undefined;
@@ -21,9 +23,13 @@ export type MainStackParamList = {
   Tabs: undefined;
   Home: undefined;
   Product: undefined;
+  FormProduct: undefined;
   Employe: undefined;
   Customer: undefined;
   Report: undefined;
   Category: undefined;
   Store: undefined;
+  FormEmployee: undefined;
 };
+
+export type NavigationMainType = NativeStackScreenProps<MainStackParamList>;

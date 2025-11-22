@@ -14,9 +14,12 @@ export default function ListUserCard({
   onDelete,
 }: ListUserCardProps) {
   return (
-    <View className="px-4 pb-52">
+    <View className="px-4 pb-52 ">
       {users.map(user => (
-        <View key={user.id} className="mb-5 bg-white rounded-2xl p-3 shadow-sm">
+        <View
+          key={user.id}
+          className="mb-5 bg-white rounded-2xl p-3 shadow-sm  border border-gray-200"
+        >
           <View className="flex-1 justify-center">
             <Text className="text-base font-semibold text-gray-900">
               {user.fullName}

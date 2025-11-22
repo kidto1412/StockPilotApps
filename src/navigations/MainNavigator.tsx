@@ -6,8 +6,9 @@ import BottomTabsNavigator from './BottomTabNavigator';
 import HomePage from '@/screens/main/Home';
 import ProductFormPage from '@/screens/product/Form';
 import EmployeeFormPage from '@/screens/employee/Form';
+import { MainStackParamList } from '@/types/navigation.type';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<MainStackParamList>();
 
 export default function MainNavigator() {
   return (

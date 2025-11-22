@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
 import { Image, Pressable, Text, View, Alert } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { UploadCloud } from 'lucide-react-native';
+import Button from './Button';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 export default function ImageUploadCard() {
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-  const pickFromGallery = () => {
+  async function requestPermissions() {
+    if (Platform.OS === 'android') {
+      const cameraPermission = await request(PERMISSIONS.ANDROID.CAMERA);
+      const photoPermission = await request(
+        PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
+      );
+
+      if (
+        cameraPermission !== RESULTS.GRANTED &&
+        photoPermission !== RESULTS.GRANTED
+      ) {
+        Alert.alert(
+          'Permission required',
+          'Please allow permissions in settings',
+        );
+        return false;
+      }
+    }
+    return true;
+  }
+  const pickFromGallery = async () => {
+    const granted = await requestPermissions();
+    if (!granted) return;
+
     launchImageLibrary({ mediaType: 'photo', quality: 1 }, response => {
       if (response.didCancel) return;
       if (response.errorCode) {
@@ -19,7 +45,10 @@ export default function ImageUploadCard() {
     });
   };
 
-  const openCamera = () => {
+  const openCamera = async () => {
+    const granted = await requestPermissions();
+    if (!granted) return;
+
     launchCamera({ mediaType: 'photo', quality: 1 }, response => {
       if (response.didCancel) return;
       if (response.errorCode) {
@@ -47,7 +76,7 @@ export default function ImageUploadCard() {
           />
         ) : (
           <>
-            <Icon name="cloud-upload-outline" size={40} color="#6C63FF" />
+            <UploadCloud size={40} color="#6C63FF" />
             <Text className="mt-3 text-blue-600 font-medium">
               Tap to upload photo
             </Text>
@@ -58,7 +87,7 @@ export default function ImageUploadCard() {
         )}
       </Pressable>
 
-      {/* Divider "OR" */}
+      {/* Divider OR */}
       <View className="flex-row items-center my-4">
         <View className="flex-1 h-px bg-gray-300" />
         <Text className="mx-3 text-gray-500">OR</Text>
@@ -66,12 +95,11 @@ export default function ImageUploadCard() {
       </View>
 
       {/* Open Camera Button */}
-      <Pressable
+      <Button
         onPress={openCamera}
         className="bg-blue-700 rounded-lg px-4 py-2 items-center"
-      >
-        <Text className="text-white font-medium">Open camera</Text>
-      </Pressable>
+        title="Buka Kamera"
+      ></Button>
     </View>
   );
 }

@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   return (
     <View className={`mb-4 ${className}`}>
       {label && <Text className="mb-1 text-gray-700 font-medium">{label}</Text>}
-      <View className="flex-row items-center bg-white rounded-lg px-4 py-3 border border-gray-300">
+      <View className="flex-row items-center bg-white rounded-lg px-3  border border-gray-300">
         <TextInput
           className="flex-1 text-gray-800"
           secureTextEntry={isSecure}

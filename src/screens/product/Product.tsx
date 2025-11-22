@@ -6,11 +6,14 @@ import { useState } from 'react';
 import { View, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/Button'; // import button custom
+import {
+  MainStackParamList,
+  NavigationMainType,
+} from '@/types/navigation.type';
 
 export default function ProductPage() {
   const [search, setSearch] = useState('');
-  const navigation = useNavigation();
-
+  const navigation = useNavigation<any>();
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       {/* Tombol Tambah Produk */}
@@ -19,6 +22,7 @@ export default function ProductPage() {
           title="Tambah Produk"
           color="primary"
           onPress={() => {
+            navigation.navigate('FormProduct');
             // nanti bisa tambahkan navigation di sini
             // contoh: navigation.navigate('AddProductPage');
           }}

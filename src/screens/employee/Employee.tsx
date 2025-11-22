@@ -69,7 +69,7 @@ export default function EmployeePage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView>
       {/* Tambah Karyawan */}
       <View className="px-5 mb-5">
         <Button
