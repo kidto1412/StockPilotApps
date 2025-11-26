@@ -17,7 +17,7 @@ export default function EmployeeFormPage() {
     username: '',
     password: '',
     phone: '',
-    role: '',
+    role: 'CASHIER',
     email: '',
   });
 
@@ -33,7 +33,7 @@ export default function EmployeeFormPage() {
         username: user.username,
         password: '', // kosongkan agar user bisa isi baru
         phone: user.phone,
-        role: user.role,
+        role: 'CASHIER',
       });
     }
   }, [user]);

@@ -5,7 +5,7 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/hooks/auth/useAuth';
 
-export default function Login() {
+export default function LoginStaff() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const router = useNavigation<any>();
@@ -19,15 +19,8 @@ export default function Login() {
 
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-2xl font-bold mb-6 text-center">Login</Text>
-      <View className="items-end">
-        <Text
-          className="text-blue-600 font-semibold mb-5"
-          onPress={() => router.navigate('LoginStaff')}
-        >
-          Login sebagai Staff
-        </Text>
-      </View>
+      <Text className="text-2xl font-bold mb-6 text-center">Login Staff</Text>
+
       {/* Username */}
       <View className="mb-4">
         <Input
@@ -74,10 +67,10 @@ export default function Login() {
           className="text-blue-600 font-semibold"
           onPress={() => router.navigate('Register')}
         >
-          Buat akun
+          Create an account
         </Text>
         <Text className="text-blue-600 font-semibold mt-2">
-          Lupa katansadi?
+          Forgot password?
         </Text>
       </View>
     </View>

@@ -4,29 +4,29 @@ import { useNavigation } from '@react-navigation/native';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import SelectBox from '@/components/SelectBox';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 export default function Register() {
   const router = useNavigation<any>();
   const [form, setForm] = useState({
     fullName: '',
+    username: '',
     email: '',
     phone: '',
     password: '',
-    confirmPassword: '',
-    role: '',
+    role: 'OWNER',
   });
 
-  const roles = [
-    { label: 'UX Research', value: 'ux' },
-    { label: 'Web Development', value: 'web' },
-    { label: 'Cross Platform Development Process', value: 'cross' },
-    { label: 'UI Designing', value: 'ui' },
-    { label: 'Backend Development', value: 'backend' },
-  ];
+  const { register } = useAuth();
+
+  const onSubmit = async () => {
+    console.log('login');
+    await register(form);
+  };
 
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-2xl font-bold mb-6 text-center">Register</Text>
+      <Text className="text-2xl font-bold mb-6 text-center">Daftar</Text>
 
       {/* Full Name */}
       <View className="mb-4">
@@ -34,6 +34,13 @@ export default function Register() {
           placeholder="Nama Lengkap"
           value={form.fullName}
           onChangeText={text => setForm({ ...form, fullName: text })}
+        />
+      </View>
+      <View className="mb-4">
+        <Input
+          placeholder="Username"
+          value={form.username}
+          onChangeText={text => setForm({ ...form, username: text })}
         />
       </View>
 
@@ -68,31 +75,31 @@ export default function Register() {
       </View>
 
       {/* Confirm Password */}
-      <View className="mb-4">
+      {/* <View className="mb-4">
         <Input
           placeholder="Konfirmasi Kata Sandi"
           type="password"
           value={form.confirmPassword}
           onChangeText={text => setForm({ ...form, confirmPassword: text })}
         />
-      </View>
+      </View> */}
 
       {/* Role Select */}
-      <View className="mb-4">
+      {/* <View className="mb-4">
         <SelectBox
           options={roles}
           selectedValue={form.role}
           placeholder="Role"
           onValueChange={val => setForm({ ...form, role: val.toString() })}
         />
-      </View>
+      </View> */}
 
       {/* Daftar Button */}
       <Button
         title="Daftar"
         color="primary"
         className="mt-2"
-        onPress={() => router.navigate('Home')}
+        onPress={onSubmit}
       />
 
       {/* Login Link */}

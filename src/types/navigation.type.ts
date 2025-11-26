@@ -4,12 +4,15 @@ export type RootStackParamList = {
   Splash: undefined;
   Auth: undefined;
   Main: undefined;
+  Store: undefined;
 };
 
 export type AuthStackParamList = {
   Login: undefined;
+  LoginStaff: undefined;
   Register: undefined;
   ChangePassword: undefined;
+  // Store: undefined;
 };
 
 export type BottomTabStackParamList = {

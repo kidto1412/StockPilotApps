@@ -8,6 +8,7 @@ import { RootStackParamList } from '@/types/navigation.type';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthNavigator } from './AuthNavigator';
 import MainNavigator from './MainNavigator';
+import StorePage from '@/screens/store/Store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,6 +23,7 @@ export function RootNavigator() {
       <Stack.Screen name="Auth" component={AuthNavigator} />
 
       <Stack.Screen name="Main" component={MainNavigator} />
+      <Stack.Screen name="Store" component={StorePage} />
     </Stack.Navigator>
   );
 }
