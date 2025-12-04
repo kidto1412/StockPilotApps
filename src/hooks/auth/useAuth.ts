@@ -4,6 +4,7 @@ import { useLoading } from '@/providers/loading.provider';
 import { useToastMessage } from '@/providers/toast.provider';
 import { AuthEndpoint } from '@/services/endpoints/auth.endpoint';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUserState } from '@/stores/user.store';
 import { RootStackParamList } from '@/types/navigation.type';
 import { getErrorMessage } from '@/utils/global-message.util';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -16,12 +17,26 @@ type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 export function useAuth() {
   //   const router = useRouter();
   const setAuth = useAuthStore(s => s.setAuth);
+  const setProfile = useUserState(s => s.setProfile);
   const setUserId = useAuthStore(s => s.setUserId);
   const { showLoading, hideLoading } = useLoading();
   const { showToast } = useToastMessage();
 
   const [data, setData] = useState(null);
   const navigation = useNavigation<RootNavigation>();
+
+  const getProfile = async () => {
+    console.log('hit');
+    try {
+      const response = await AuthEndpoint.profile();
+      console.log(response);
+      await setProfile(response.data);
+      navigation.replace('Main');
+    } catch (error) {
+      const message = getErrorMessage(error);
+      showToast(message, 'error');
+    }
+  };
 
   const login = async (username: string, password: string) => {
     try {
@@ -30,11 +45,10 @@ export function useAuth() {
       const res = await AuthEndpoint.login({ username, password });
       console.log(res);
 
-      await setAuth(res.data.access_token);
+      await setAuth(res.data.token);
+      await getProfile();
 
-      //   router.replace("/(main)");
-      navigation.replace('Main');
-      showToast('Login berhasil 🎉', 'success');
+      // await showToast('Login berhasil 🎉', 'success');
     } catch (err) {
       const message = getErrorMessage(err);
       showToast(message, 'error');
@@ -52,7 +66,7 @@ export function useAuth() {
       const res = await AuthEndpoint.register(data);
       console.log(res);
 
-      await setAuth(res.data.access_token);
+      await setAuth(res.data.token);
       await setUserId(res.data.userId);
 
       (navigation.replace('Store'),

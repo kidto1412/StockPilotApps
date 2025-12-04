@@ -7,7 +7,7 @@ export const UserEndpoint = {
     return POST('/users', payload);
   },
   getPagination(params: PaginationRequest) {
-    return GET_PAGINATED<UserResponse>('/users/pagination', { params });
+    return GET_PAGINATED<UserResponse>('/users/staff/pagination', { params });
   },
   update(id: string, payload: UserRequest) {
     return PUT(`/users/${id}`, payload);

@@ -15,7 +15,7 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   console.log(apiUrl);
   console.log(token);
   if (token) {
-    config.headers.set('Authorization', `Bearer ${token}`);
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });

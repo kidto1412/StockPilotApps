@@ -45,7 +45,7 @@ export default function CategoryMenu() {
     { label: 'Produk', icon: Package, path: 'Product' },
     { label: 'Laporan', icon: BarChart2, path: 'Report' },
     { label: 'Category', icon: Tag, path: 'Category' },
-    { label: 'Store', icon: Store, path: 'Store' },
+    { label: 'Diskon', icon: Store, path: 'Store' },
   ];
 
   return (

@@ -17,5 +17,15 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
-
+subprojects { subproject ->
+    if (subproject.name.contains("react-native-gesture-handler")) {
+        subproject.afterEvaluate {
+            if (subproject.hasProperty("android")) {
+                subproject.android.compileSdkVersion = rootProject.ext.compileSdkVersion
+                subproject.android.defaultConfig.targetSdkVersion = rootProject.ext.targetSdkVersion
+                subproject.android.defaultConfig.minSdkVersion = rootProject.ext.minSdkVersion
+            }
+        }
+    }
+}
 apply plugin: "com.facebook.react.rootproject"

@@ -97,12 +97,12 @@ export default function EmployeeFormPage() {
               onChangeText={text => setForm({ ...form, phone: text })}
             />
 
-            <SelectBox
+            {/* <SelectBox
               options={roles.map(r => ({ label: r.label, value: r.value }))}
               selectedValue={form.role}
               placeholder="Pilih Role"
               onValueChange={val => setForm({ ...form, role: val.toString() })}
-            />
+            /> */}
           </View>
 
           {/* Buttons */}

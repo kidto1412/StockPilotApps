@@ -1,10 +1,10 @@
 export interface LoginResponse {
-  access_token: string;
+  token: string;
 }
 
 export interface RegisterResponse {
   userId: string;
-  access_token: string;
+  token: string;
 }
 export interface LoginRequest {
   username: string;

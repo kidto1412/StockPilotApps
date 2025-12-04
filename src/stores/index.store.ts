@@ -1,10 +1,10 @@
-import { secureStorage } from "@/utils/secureStore";
-import { StateCreator } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { secureStorage } from '@/utils/secureStore';
+import { StateCreator } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export function createSecurePersist<T>(
   initializer: StateCreator<T>,
-  name: string
+  name: string,
 ) {
   return persist<T>(initializer, {
     name,

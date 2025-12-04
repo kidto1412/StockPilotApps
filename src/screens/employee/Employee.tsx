@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { SafeAreaView, View, ScrollView } from 'react-native';
+import { SafeAreaView, View, ScrollView, Text } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import Button from '@/components/Button';
@@ -69,13 +69,13 @@ export default function EmployeePage() {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="flex-1 bg-gray-100">
       {/* Tambah Karyawan */}
-      <View className="px-5 mb-5">
+      <View className="items-start px-5 mb-5">
         <Button
           title="Tambah Karyawan"
           color="primary"
-          onPress={() => navigation.navigate('EmployeeForm')}
+          onPress={() => navigation.navigate('FormEmployee')}
         />
       </View>
 
@@ -99,11 +99,20 @@ export default function EmployeePage() {
         }}
         scrollEventThrottle={16}
       >
-        <ListUserCard
-          users={users}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        {users.length === 0 ? (
+          <Text className="text-center text-gray-500 mt-5">
+            Tidak ada karyawan
+          </Text>
+        ) : (
+          users.map(user => (
+            <ListUserCard
+              key={user.id}
+              user={user}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
       </ScrollView>
 
       {/* Confirm Delete Modal */}
