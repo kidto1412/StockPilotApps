@@ -33,6 +33,7 @@ export type MainStackParamList = {
   Category: undefined;
   Store: undefined;
   FormEmployee: undefined;
+  FormCategory: undefined;
 };
 
 export type NavigationMainType = NativeStackScreenProps<MainStackParamList>;

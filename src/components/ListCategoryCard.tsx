@@ -1,74 +1,49 @@
 import React from 'react';
-import { ScrollView, Text, View, Image } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { UserResponse } from '@/interfaces/user.interface';
+import { Edit, Trash2, User } from 'lucide-react-native';
+import { CategoryResponse } from '@/interfaces/category.interface';
 
-export default function ListCategoryCard() {
-  const hotels = [
-    {
-      id: 1,
-      name: 'Solstice Royale',
-      image:
-        'https://images.unsplash.com/photo-1576675784426-c9c9a7f2f8b1?auto=format&fit=crop&w=800&q=60',
-      rating: 4.5,
-      reviews: 423,
-      price: '$170 - $495/night',
-      address: 'Jl. Babakansari wetan St No.153, Bogor',
-    },
-    {
-      id: 2,
-      name: 'Celestine Haven',
-      image:
-        'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=60',
-      rating: 4.9,
-      reviews: 345,
-      price: '$725 - $820/night',
-      address: 'Jl. Sritanjung Utara No.11, Ngagelrejo, Surabaya',
-    },
-    {
-      id: 3,
-      name: 'Tropicana Bliss',
-      image:
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=60',
-      rating: 4.7,
-      reviews: 546,
-      price: '$530 - $950/night',
-      address: 'Jl. Panda Putih No.163-165, Bogor Barat',
-    },
-  ];
+interface ListCategoryProps {
+  category: CategoryResponse;
+  onEdit: (category: CategoryResponse) => void;
+  onDelete: (category: CategoryResponse) => void;
+}
 
+export default function ListCategoryCard({
+  category,
+  onEdit,
+  onDelete,
+}: ListCategoryProps) {
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ padding: 16 }}
-    >
-      {hotels.map(hotel => (
-        <View
-          key={hotel.id}
-          className="mb-5 bg-white rounded-2xl p-3 shadow-sm flex-row"
-        >
-          {/* Gambar hotel */}
-          <View className="w-24 h-24 rounded-xl overflow-hidden bg-gray-200">
-            <Image
-              source={{ uri: hotel.image }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          </View>
-
-          {/* Detail hotel */}
-          <View className="flex-1 justify-center ml-3">
-            <Text className="text-base font-semibold text-gray-900">
-              {hotel.name}
-            </Text>
-
-            <Text className="text-sm text-gray-500 mt-1">
-              ({hotel.reviews} reviews)
-            </Text>
-
-            <Text className="text-sm text-gray-700 mt-1">{hotel.price}</Text>
-            <Text className="text-xs text-gray-500 mt-1">{hotel.address}</Text>
-          </View>
+    <View className="bg-white rounded-2xl mb-4 p-4 shadow-sm border border-gray-200">
+      {/* Row: Avatar + Info */}
+      <View className="flex-row">
+        <View className="ml-3 flex-1">
+          <Text className="text-base font-semibold text-gray-900">
+            {category.name}
+          </Text>
         </View>
-      ))}
-    </ScrollView>
+      </View>
+
+      {/* Buttons inside card */}
+      <View className="flex-row space-x-4 mt-4 ">
+        <TouchableOpacity
+          onPress={() => onEdit(category)}
+          className="flex-row items-center px-3 py-2 bg-blue-100 rounded-xl"
+        >
+          <Edit size={18} color="#2563eb" />
+          <Text className="ml-1 text-blue-600 font-semibold">Edit</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onDelete(category)}
+          className="flex-row items-center px-3 py-2 bg-red-100 rounded-xl ml-2"
+        >
+          <Trash2 size={18} color="#dc2626" />
+          <Text className="ml-2 text-red-600 font-semibold">Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

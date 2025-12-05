@@ -13,6 +13,6 @@ export const UserEndpoint = {
     return PUT(`/users/${id}`, payload);
   },
   delete(id: string) {
-    return DELETE(`/users/${id}`);
+    return DELETE(`/category/${id}`);
   },
 };

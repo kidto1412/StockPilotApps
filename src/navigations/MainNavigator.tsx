@@ -7,6 +7,8 @@ import HomePage from '@/screens/main/Home';
 import ProductFormPage from '@/screens/product/Form';
 import EmployeeFormPage from '@/screens/employee/Form';
 import { MainStackParamList } from '@/types/navigation.type';
+import CategoryPage from '@/screens/category/Category';
+import CategoryForm from '@/screens/category/Form';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -32,6 +34,8 @@ export default function MainNavigator() {
       <Stack.Screen name="Home" component={HomePage} />
       <Stack.Screen name="Product" component={Product} />
       <Stack.Screen name="FormProduct" component={ProductFormPage} />
+      <Stack.Screen name="Category" component={CategoryPage} />
+      <Stack.Screen name="FormCategory" component={CategoryForm} />
       <Stack.Screen name="Employe" component={EmployeePage} />
       <Stack.Screen name="FormEmployee" component={EmployeeFormPage} />
       <Stack.Screen name="Customer" component={CustomerPage} />

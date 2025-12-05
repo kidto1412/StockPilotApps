@@ -52,7 +52,7 @@ export default function ConfirmDeleteModal({
 
             <Pressable
               onPress={onConfirm}
-              className="flex-1 bg-red-600 rounded-lg py-2 items-center justify-center"
+              className="flex-1 ml-2 bg-red-600 rounded-lg py-2 items-center justify-center"
             >
               <Text className="text-white font-medium">Delete</Text>
             </Pressable>
