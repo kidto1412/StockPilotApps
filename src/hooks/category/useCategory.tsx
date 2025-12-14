@@ -10,6 +10,7 @@ import { useToastMessage } from '@/providers/toast.provider';
 import { CategoryEndpoint } from '@/services/endpoints/category.endpoint';
 
 import { UserEndpoint } from '@/services/endpoints/user.endpoint';
+import { useCategoryStore } from '@/stores/category.store';
 import { useUserState } from '@/stores/user.store';
 
 import { getErrorMessage } from '@/utils/global-message.util';
@@ -17,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 // import { useRouter } from "expo-router";
 
 export function useCategory() {
-  //   const { user, reset } = useUserState();
+  const { reset } = useCategoryStore();
   //   const router = useRouter();
   const navigation = useNavigation<any>();
 
@@ -31,8 +32,8 @@ export function useCategory() {
       await CategoryEndpoint.create(data);
 
       showToast('Berhasil 🎉', 'success');
-      navigation.navigate('Category');
-      //   router.back();
+
+      navigation.goBack();
     } catch (err) {
       const message = getErrorMessage(err);
       showToast(message, 'error');
@@ -45,8 +46,9 @@ export function useCategory() {
       showLoading();
 
       await CategoryEndpoint.update(id, data);
-      //   reset();
+      reset();
       //   router.back();
+      navigation.goBack();
       showToast('Berhasil 🎉', 'success');
       navigation.navigate('Category');
     } catch (err) {

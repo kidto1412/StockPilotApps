@@ -9,6 +9,8 @@ import EmployeeFormPage from '@/screens/employee/Form';
 import { MainStackParamList } from '@/types/navigation.type';
 import CategoryPage from '@/screens/category/Category';
 import CategoryForm from '@/screens/category/Form';
+import SalesPage from '@/screens/sales/Sales';
+import DisscountPage from '@/screens/disccount/Disscount';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -18,10 +20,6 @@ export default function MainNavigator() {
       screenOptions={{
         headerShown: true,
         animation: 'slide_from_right',
-        contentStyle: {
-          marginTop: 12, // atau sesuai kebutuhan
-          backgroundColor: '#fff', // opsional agar konsisten
-        },
       }}
     >
       <Stack.Screen
@@ -39,6 +37,8 @@ export default function MainNavigator() {
       <Stack.Screen name="Employe" component={EmployeePage} />
       <Stack.Screen name="FormEmployee" component={EmployeeFormPage} />
       <Stack.Screen name="Customer" component={CustomerPage} />
+      <Stack.Screen name="Sales" component={SalesPage} />
+      <Stack.Screen name="Discount" component={DisscountPage} />
     </Stack.Navigator>
   );
 }

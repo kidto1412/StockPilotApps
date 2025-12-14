@@ -24,18 +24,19 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <View className={`mb-4 ${className}`}>
-      {label && <Text className="mb-1 text-gray-700 font-medium">{label}</Text>}
-      <View className="flex-row items-center bg-white rounded-lg px-3  border border-gray-300">
+      {label && <Text className="mb-1 text-white font-medium">{label}</Text>}
+      <View className="flex-row items-center input-bg rounded-lg px-3  border border-gray-300">
         <TextInput
-          className="flex-1 text-gray-800"
+          className="flex-1 text-white"
           secureTextEntry={isSecure}
           keyboardType={type === 'email' ? 'email-address' : 'default'}
           autoCapitalize={type === 'email' ? 'none' : 'sentences'}
+          placeholderTextColor="grey"
           {...props}
         />
         {type === 'password' && (
           <TouchableOpacity onPress={() => setIsSecure(!isSecure)}>
-            <Text className="text-gray-500 ml-2">
+            <Text className="text-white ml-2">
               {isSecure ? 'Show' : 'Hide'}
             </Text>
           </TouchableOpacity>

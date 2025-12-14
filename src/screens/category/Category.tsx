@@ -8,6 +8,9 @@ import { useCategory } from '@/hooks/category/useCategory';
 import { CategoryResponse } from '@/interfaces/category.interface';
 import { useCategoryStore } from '@/stores/category.store';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import Screen from '@/components/Screen';
+import CheckoutBar from '@/components/CheckoutBar';
+import ButtonBottom from '@/components/ButtonBottom';
 
 export default function CategoryPage() {
   const { getCategoryPagination, deleteCategory } = useCategory();
@@ -66,18 +69,9 @@ export default function CategoryPage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      {/* Button Tambah Kategori */}
-      <View className="items-start px-5  mb-5">
-        <Button
-          title="Tambah Kategori"
-          color="primary"
-          onPress={() => navigation.navigate('FormCategory')}
-        />
-      </View>
-
+    <Screen className="flex-1">
       {/* Search Input */}
-      <View className="px-5 mb-5">
+      <View className="px-5 mb-5 mt-5">
         <Input placeholder="Search..." />
       </View>
 
@@ -116,6 +110,10 @@ export default function CategoryPage() {
           ))
         )}
       </ScrollView>
+      <ButtonBottom
+        onPress={() => navigation.navigate('FormCategory')}
+        title={'Tambah Categori'}
+      />
       <ConfirmDeleteModal
         visible={showDeleteModal}
         title="Delete Category"
@@ -123,6 +121,6 @@ export default function CategoryPage() {
         onCancel={() => setShowDeleteModal(false)}
         onConfirm={onDeleteConfirm}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

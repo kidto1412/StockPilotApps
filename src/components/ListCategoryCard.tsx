@@ -16,11 +16,11 @@ export default function ListCategoryCard({
   onDelete,
 }: ListCategoryProps) {
   return (
-    <View className="bg-white rounded-2xl mb-4 p-4 shadow-sm border border-gray-200">
+    <View className="bg-[#1B2A21]  rounded-2xl mb-4 p-4 shadow-sm border border-gray-200">
       {/* Row: Avatar + Info */}
       <View className="flex-row">
         <View className="ml-3 flex-1">
-          <Text className="text-base font-semibold text-gray-900">
+          <Text className="text-base font-semibold text-white">
             {category.name}
           </Text>
         </View>

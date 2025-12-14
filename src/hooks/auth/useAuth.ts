@@ -31,7 +31,6 @@ export function useAuth() {
       const response = await AuthEndpoint.profile();
       console.log(response);
       await setProfile(response.data);
-      navigation.replace('Main');
     } catch (error) {
       const message = getErrorMessage(error);
       showToast(message, 'error');
@@ -47,6 +46,7 @@ export function useAuth() {
 
       await setAuth(res.data.token);
       await getProfile();
+      navigation.replace('Main');
 
       // await showToast('Login berhasil 🎉', 'success');
     } catch (err) {
@@ -68,6 +68,7 @@ export function useAuth() {
 
       await setAuth(res.data.token);
       await setUserId(res.data.userId);
+      await getProfile();
 
       (navigation.replace('Store'),
         showToast('Register berhasil 🎉', 'success'));

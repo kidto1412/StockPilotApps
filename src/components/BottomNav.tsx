@@ -16,7 +16,7 @@ export default function BottomNavigation({
   navigation,
 }: BottomTabBarProps) {
   return (
-    <View className="flex-row justify-around bg-white py-2 border-t border-gray-200">
+    <View className="flex-row justify-around base py-2 border-t border-gray-600">
       {state.routes.map((route, index) => {
         const isActive = state.index === index;
         const Icon = icons[route.name];
@@ -28,10 +28,10 @@ export default function BottomNavigation({
             className="items-center"
           >
             {Icon && (
-              <Icon size={24} color={isActive ? '#3B82F6' : '#9CA3AF'} />
+              <Icon size={24} color={isActive ? '#22C55E' : '#9CA3AF'} />
             )}
             <Text
-              className={`text-xs ${isActive ? 'text-blue-500' : 'text-gray-400'}`}
+              className={`text-xs ${isActive ? 'text-primary' : 'text-gray-400'}`}
             >
               {descriptors[route.key].options.title ?? route.name}
             </Text>

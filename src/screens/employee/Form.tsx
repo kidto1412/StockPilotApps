@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { useUserState } from '@/stores/user.store';
 import { useUser } from '@/hooks/user/useUser';
 import { UserRequest } from '@/interfaces/user.interface';
@@ -10,6 +10,8 @@ import Button from '@/components/Button';
 // Versi sederhana SelectBox
 import SelectBox from '@/components/SelectBox';
 import { roles } from '@/constants/role.constant';
+import Screen from '@/components/Screen';
+import ButtonBottom from '@/components/ButtonBottom';
 
 export default function EmployeeFormPage() {
   const [form, setForm] = useState<UserRequest>({
@@ -64,9 +66,12 @@ export default function EmployeeFormPage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <Screen className="flex-1">
       <ScrollView className="flex-1">
         <View className="p-5">
+          <Text className="text-white mb-5 font-bold text-2xl">
+            Form Karyawan
+          </Text>
           <View className="mb-5">
             <Input
               placeholder="Name"
@@ -104,18 +109,9 @@ export default function EmployeeFormPage() {
               onValueChange={val => setForm({ ...form, role: val.toString() })}
             /> */}
           </View>
-
-          {/* Buttons */}
-          <View className="flex-row justify-start space-x-4">
-            <Button
-              title="Kembali"
-              color="secondary"
-              onPress={() => console.log('Kembali')}
-            />
-            <Button title="Simpan" color="primary" onPress={onSubmit} />
-          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      <ButtonBottom title="Simpan" onPress={onSubmit} />
+    </Screen>
   );
 }

@@ -5,12 +5,14 @@ import { TouchableOpacity, Text, TouchableOpacityProps } from 'react-native';
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
   color?: 'primary' | 'secondary' | 'danger';
+  textClassName?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
   title,
   color = 'primary',
   className = '',
+  textClassName = 'white',
   ...props
 }) => {
   let colorClasses = '';
@@ -32,7 +34,9 @@ const Button: React.FC<ButtonProps> = ({
       className={`${colorClasses} px-4 py-2 rounded-lg items-center justify-center ${className}`}
       {...props}
     >
-      <Text className="text-white font-semibold">{title}</Text>
+      <Text className={`font-semibold ${textClassName ?? 'white'}`}>
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };

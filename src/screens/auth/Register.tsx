@@ -5,6 +5,7 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 import SelectBox from '@/components/SelectBox';
 import { useAuth } from '@/hooks/auth/useAuth';
+import Screen from '@/components/Screen';
 
 export default function Register() {
   const router = useNavigation<any>();
@@ -25,8 +26,10 @@ export default function Register() {
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-2xl font-bold mb-6 text-center">Daftar</Text>
+    <Screen className="flex-1 justify-center px-6 ">
+      <Text className="text-2xl font-bold mb-6 text-center text-white">
+        Daftar
+      </Text>
 
       {/* Full Name */}
       <View className="mb-4">
@@ -97,21 +100,21 @@ export default function Register() {
       {/* Daftar Button */}
       <Button
         title="Daftar"
-        color="primary"
-        className="mt-2"
+        className="mt-2 primary"
+        textClassName="text-white"
         onPress={onSubmit}
       />
 
       {/* Login Link */}
       <View className="mt-4 flex-row items-center justify-center">
-        <Text>Sudah punya akun?</Text>
+        <Text className="text-white">Sudah punya akun?</Text>
         <Text
-          className="text-blue-600 ml-2 font-semibold"
+          className="text-gray-500 ml-2 font-semibold"
           onPress={() => router.navigate('Login')}
         >
           Masuk
         </Text>
       </View>
-    </View>
+    </Screen>
   );
 }

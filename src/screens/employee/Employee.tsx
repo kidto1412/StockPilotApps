@@ -9,6 +9,8 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { useUser } from '@/hooks/user/useUser';
 import { useUserState } from '@/stores/user.store';
 import { UserResponse } from '@/interfaces/user.interface';
+import ButtonBottom from '@/components/ButtonBottom';
+import Screen from '@/components/Screen';
 
 export default function EmployeePage() {
   const { getUserPagination, deleteUser } = useUser();
@@ -69,18 +71,11 @@ export default function EmployeePage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <Screen className="flex-1 ">
       {/* Tambah Karyawan */}
-      <View className="items-start px-5 mb-5">
-        <Button
-          title="Tambah Karyawan"
-          color="primary"
-          onPress={() => navigation.navigate('FormEmployee')}
-        />
-      </View>
 
       {/* Search Input */}
-      <View className="px-5">
+      <View className="px-5 mt-5 ">
         <Input placeholder="Search..." />
       </View>
 
@@ -114,7 +109,10 @@ export default function EmployeePage() {
           ))
         )}
       </ScrollView>
-
+      <ButtonBottom
+        title="Tambah Karyawan"
+        onPress={() => navigation.navigate('FormEmployee')}
+      />
       {/* Confirm Delete Modal */}
       <ConfirmDeleteModal
         visible={showDeleteModal}
@@ -123,6 +121,6 @@ export default function EmployeePage() {
         onCancel={() => setShowDeleteModal(false)}
         onConfirm={onDeleteConfirm}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

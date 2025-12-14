@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/hooks/auth/useAuth';
+import Screen from '@/components/Screen';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -18,11 +19,20 @@ export default function Login() {
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-2xl font-bold mb-6 text-center">Login</Text>
+    <Screen className="justify-center px-6">
+      <View className="items-center">
+        <Image
+          source={require('@/assets/img/logo-transparent.png')}
+          className="w-40 h-40 mb-4"
+        />
+      </View>
+      <Text className="text-2xl font-bold mb-6 text-center text-white">
+        Login
+      </Text>
+
       <View className="items-end">
         <Text
-          className="text-blue-600 font-semibold mb-5"
+          className="text-gray-400 font-semibold mb-5"
           onPress={() => router.navigate('LoginStaff')}
         >
           Login sebagai Staff
@@ -50,9 +60,9 @@ export default function Login() {
       {/* Login Button */}
       <Button
         title="Login"
-        color="primary"
-        className="mt-2"
+        className="mt-2 primary"
         onPress={onSubmit}
+        textClassName="text-white"
       />
 
       {/* Divider */}
@@ -63,23 +73,23 @@ export default function Login() {
       {/* Login dengan Google */}
       <Button
         title="Lanjutkan dengan Google"
-        color="secondary"
-        className="mt-2"
-        onPress={onSubmit} // nanti ganti sesuai auth Google
+        className="mt-2 bg-white border-gray-300"
+        textClassName="text-black"
+        onPress={onSubmit}
       />
 
       {/* Links */}
       <View className="mt-4 items-center">
         <Text
-          className="text-blue-600 font-semibold"
+          className="text-gray-400  font-semibold"
           onPress={() => router.navigate('Register')}
         >
           Buat akun
         </Text>
-        <Text className="text-blue-600 font-semibold mt-2">
+        <Text className="text-gray-400  font-semibold mt-2">
           Lupa katansadi?
         </Text>
       </View>
-    </View>
+    </Screen>
   );
 }

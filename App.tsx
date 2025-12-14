@@ -25,12 +25,10 @@ import { RootNavigator } from '@/navigations/RootNavigator';
 import { LoadingProvider } from '@/providers/loading.provider';
 import { API_URL } from '@env';
 import { ToastProvider } from '@/providers/toast.provider';
-import { useAuthStore } from '@/stores/auth.store';
+
 console.log('ENV CHECK:', API_URL);
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
   return (
     <GestureHandlerRootView>
       <SafeAreaProvider>

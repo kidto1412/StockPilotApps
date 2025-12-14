@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { Image, Pressable, Text, View, Alert } from 'react-native';
+import { Image, Pressable, Text, View, Alert, Platform } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { UploadCloud } from 'lucide-react-native';
 import Button from './Button';
-import { PermissionsAndroid, Platform } from 'react-native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-export default function ImageUploadCard() {
+interface ImageUploadCardProps {
+  onImageSelected?: (uri: string | null) => void; // <-- tambahkan props
+}
+
+export default function ImageUploadCard({
+  onImageSelected,
+}: ImageUploadCardProps) {
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   async function requestPermissions() {
@@ -29,6 +34,12 @@ export default function ImageUploadCard() {
     }
     return true;
   }
+
+  const handleImage = (uri: string | null) => {
+    setImageUri(uri);
+    if (onImageSelected) onImageSelected(uri); // <-- kirim balik ke parent
+  };
+
   const pickFromGallery = async () => {
     const granted = await requestPermissions();
     if (!granted) return;
@@ -40,7 +51,7 @@ export default function ImageUploadCard() {
         return;
       }
       if (response.assets && response.assets.length > 0) {
-        setImageUri(response.assets[0].uri || null);
+        handleImage(response.assets[0].uri || null);
       }
     });
   };
@@ -56,14 +67,13 @@ export default function ImageUploadCard() {
         return;
       }
       if (response.assets && response.assets.length > 0) {
-        setImageUri(response.assets[0].uri || null);
+        handleImage(response.assets[0].uri || null);
       }
     });
   };
 
   return (
     <View className="w-full px-5 mb-5">
-      {/* Container */}
       <Pressable
         onPress={pickFromGallery}
         className="border border-dashed border-gray-400 rounded-xl p-6 bg-gray-50 items-center justify-center"
@@ -87,19 +97,17 @@ export default function ImageUploadCard() {
         )}
       </Pressable>
 
-      {/* Divider OR */}
       <View className="flex-row items-center my-4">
         <View className="flex-1 h-px bg-gray-300" />
         <Text className="mx-3 text-gray-500">OR</Text>
         <View className="flex-1 h-px bg-gray-300" />
       </View>
 
-      {/* Open Camera Button */}
       <Button
         onPress={openCamera}
-        className="bg-blue-700 rounded-lg px-4 py-2 items-center"
+        className="primary rounded-lg px-4 py-2 items-center"
         title="Buka Kamera"
-      ></Button>
+      />
     </View>
   );
 }
