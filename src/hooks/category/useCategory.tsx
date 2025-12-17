@@ -73,6 +73,20 @@ export function useCategory() {
     }
   };
 
+  const getAll = async () => {
+    try {
+      showLoading();
+
+      const res = await CategoryEndpoint.getAll();
+      return res.data;
+    } catch (err) {
+      const message = getErrorMessage(err);
+      showToast(message, 'error');
+    } finally {
+      hideLoading();
+    }
+  };
+
   const deleteCategory = async (id: string) => {
     try {
       showLoading();
@@ -86,5 +100,5 @@ export function useCategory() {
     }
   };
 
-  return { create, getCategoryPagination, deleteCategory, update };
+  return { create, getCategoryPagination, deleteCategory, update, getAll };
 }

@@ -35,7 +35,7 @@ export default function SelectBox({
     <View className={`w-full ${className}`}>
       {/* Button */}
       <Pressable
-        className="border border-gray-300 rounded-lg px-4 py-3 bg-white flex-row justify-between items-center"
+        className="border border-gray-300 rounded-lg px-4 py-3 bg-grey flex-row justify-between items-center"
         onPress={() => {
           setIsOpen(true);
           onOpen?.();

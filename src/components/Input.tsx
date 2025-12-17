@@ -12,16 +12,43 @@ interface InputProps extends TextInputProps {
   label?: string;
   type?: 'text' | 'email' | 'password';
   className?: string;
+  suffixIcon?: React.ReactNode;
+  onSuffixPress?: () => void;
 }
 
 const Input: React.FC<InputProps> = ({
   label,
   type = 'text',
   className = '',
+  suffixIcon,
+  onSuffixPress,
   ...props
 }) => {
   const [isSecure, setIsSecure] = useState(type === 'password');
+  const renderSuffix = () => {
+    // Password toggle punya prioritas
+    if (type === 'password') {
+      return (
+        <TouchableOpacity onPress={() => setIsSecure(!isSecure)}>
+          <Text className="text-white ml-2">{isSecure ? 'Show' : 'Hide'}</Text>
+        </TouchableOpacity>
+      );
+    }
 
+    if (suffixIcon) {
+      return (
+        <TouchableOpacity
+          onPress={onSuffixPress}
+          disabled={!onSuffixPress}
+          className="ml-2"
+        >
+          {suffixIcon}
+        </TouchableOpacity>
+      );
+    }
+
+    return null;
+  };
   return (
     <View className={`mb-4 ${className}`}>
       {label && <Text className="mb-1 text-white font-medium">{label}</Text>}
@@ -41,6 +68,7 @@ const Input: React.FC<InputProps> = ({
             </Text>
           </TouchableOpacity>
         )}
+        {renderSuffix()}
       </View>
     </View>
   );

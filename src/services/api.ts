@@ -8,6 +8,7 @@ const apiUrl = API_URL;
 const api = axios.create({
   baseURL: apiUrl,
   timeout: 15000,
+  withCredentials: false,
 });
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {

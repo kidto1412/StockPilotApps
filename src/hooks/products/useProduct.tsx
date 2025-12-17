@@ -18,7 +18,9 @@ export function useProduct() {
       const form = new FormData();
       form.append('name', data.name);
       form.append('sku', data.sku || '');
-      form.append('barcode', data.barcode || '');
+      if (data.barcode) {
+        form.append('barcode', data.barcode);
+      }
       form.append('cost', String(data.cost));
       form.append('price', String(data.price));
       form.append('stock', String(data.stock));
@@ -28,18 +30,21 @@ export function useProduct() {
       }
 
       if (image) {
+        console.log(image, 'image');
         form.append('image', {
-          uri: image.uri,
-          name: image.fileName ?? 'product.jpg',
+          uri: image,
+          name: image.fileName ?? `product-${Date.now()}.jpg`,
           type: image.type ?? 'image/jpeg',
         });
       }
+      console.log(form, 'form');
 
       await ProductEndpoint.create(form);
 
       showToast('Produk berhasil dibuat 🎉', 'success');
       navigation.goBack();
     } catch (err) {
+      console.log(err);
       showToast(getErrorMessage(err), 'error');
     } finally {
       hideLoading();

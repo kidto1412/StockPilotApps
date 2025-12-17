@@ -1,3 +1,4 @@
+import { formatRupiah } from '@/utils/formatRupiah';
 import { Text, View } from 'react-native';
 
 export function ProductItem({ item }: any) {
@@ -28,7 +29,7 @@ export function ProductItem({ item }: any) {
           item.status === 'out' ? 'text-gray-500' : 'text-green-400'
         }`}
       >
-        {item.price}
+        {formatRupiah(item.price)}
       </Text>
     </View>
   );

@@ -5,6 +5,9 @@ import Input from '@/components/Input';
 import CategoryFilter from '@/components/CategoryFilter';
 import ProductCard from '@/components/ProductCard';
 import CheckoutBar from '@/components/CheckoutBar';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { MainStackParamList } from '@/types/navigation.type';
 
 // import SearchBar from '@/components/sales/SearchBar';
 // import CategoryFilter from '@/components/sales/CategoryFilter';
@@ -39,6 +42,8 @@ const PRODUCTS = [
 ];
 
 export default function SalesPage() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   return (
     <Screen className="flex-1 base">
       <ScrollView
@@ -66,7 +71,12 @@ export default function SalesPage() {
       </ScrollView>
 
       {/* Checkout */}
-      <CheckoutBar />
+      <CheckoutBar
+        amount={30.5}
+        onPress={() => {
+          navigation.push('Checkout');
+        }}
+      />
     </Screen>
   );
 }

@@ -5,7 +5,7 @@ import {
 } from '@/interfaces/category.interface';
 import { PaginationRequest } from '@/interfaces/pagination.interface';
 
-import { DELETE, GET_PAGINATED, POST, PUT } from '@/utils/api.util';
+import { DELETE, GET, GET_PAGINATED, POST, PUT } from '@/utils/api.util';
 
 export const CategoryEndpoint = {
   create(payload: CreateCategory) {
@@ -13,6 +13,9 @@ export const CategoryEndpoint = {
   },
   getPagination(params: PaginationRequest) {
     return GET_PAGINATED<CategoryResponse>('/category/pagination', { params });
+  },
+  getAll() {
+    return GET<CategoryResponse[]>('/category');
   },
   update(id: string, payload: UpdateCategory) {
     return PUT(`/category/${id}`, payload);

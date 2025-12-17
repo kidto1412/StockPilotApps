@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { UserResponse } from '@/interfaces/user.interface';
 import { Edit, Trash2, User } from 'lucide-react-native';
+import Screen from './Screen';
 
 interface ListUserCardProps {
   user: UserResponse;
@@ -15,7 +16,7 @@ export default function ListUserCard({
   onDelete,
 }: ListUserCardProps) {
   return (
-    <View className="bg-white rounded-2xl mb-4 p-4 shadow-sm border border-gray-200">
+    <Screen className=" rounded-2xl mb-4 p-4 shadow-sm border border-gray-200">
       {/* Row: Avatar + Info */}
       <View className="flex-row">
         <View className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mt-1">
@@ -23,11 +24,11 @@ export default function ListUserCard({
         </View>
 
         <View className="ml-3 flex-1">
-          <Text className="text-base font-semibold text-gray-900">
+          <Text className="text-base font-semibold text-white">
             {user.fullName}
           </Text>
 
-          <Text className="text-gray-600 text-sm mt-1">Role: {user.role}</Text>
+          <Text className="text-gray-300 text-sm mt-1">Role: {user.role}</Text>
         </View>
       </View>
 
@@ -49,6 +50,6 @@ export default function ListUserCard({
           <Text className="ml-2 text-red-600 font-semibold">Delete</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Screen>
   );
 }

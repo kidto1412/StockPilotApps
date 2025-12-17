@@ -36,6 +36,7 @@ export type MainStackParamList = {
   FormCategory: undefined;
   Sales: undefined;
   Discount: undefined;
+  Checkout: undefined;
 };
 
 export type NavigationMainType = NativeStackScreenProps<MainStackParamList>;

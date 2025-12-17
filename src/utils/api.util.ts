@@ -16,6 +16,15 @@ export async function POST<T>(url: string, body: any, config: object = {}) {
   return res.data;
 }
 
+export async function POST_MULTI_PART_FORM<T>(url: string, body: any) {
+  const res = await api.post<APIResponse<T>>(url, body, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+}
+
 export async function PUT<T>(url: string, body: any, config: object = {}) {
   const res = await api.put<APIResponse<T>>(url, body, config);
   return res.data;

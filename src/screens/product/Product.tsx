@@ -108,7 +108,7 @@ export default function ProductPage() {
       {/* Filter Scroll */}
       {/* <FilterScroll /> */}
       <FlatList
-        data={productsDummy}
+        data={products}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <ProductItem item={item} />}
