@@ -111,7 +111,9 @@ export default function ProductPage() {
         data={products}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <ProductItem item={item} />}
+        renderItem={({ item }) => (
+          <ProductItem item={item} onDelete={() => {}} onEdit={() => {}} />
+        )}
       />
       <ButtonBottom
         title={'Tambah Produk'}
