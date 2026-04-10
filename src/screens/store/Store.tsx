@@ -13,6 +13,7 @@ import { useLocation } from '@/hooks/location/useLocation';
 import Button from '@/components/Button';
 import { useAuthStore } from '@/stores/auth.store';
 import { useBusinessType } from '@/hooks/businessType/useBusinessType';
+import Screen from '@/components/Screen';
 
 export default function StorePage() {
   const { userId } = useAuthStore();
@@ -94,7 +95,7 @@ export default function StorePage() {
     await create(form);
   };
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
+    <Screen hashMenu={false} className="flex-1 justify-center px-6">
       <Text className="text-2xl font-bold mb-6 text-center mt-5">Toko</Text>
       <ScrollView className="flex-1">
         <View className="p-5">
@@ -148,6 +149,6 @@ export default function StorePage() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </Screen>
   );
 }

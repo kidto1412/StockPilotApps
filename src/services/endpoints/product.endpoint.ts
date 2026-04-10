@@ -22,6 +22,10 @@ export const ProductEndpoint = {
     return DELETE(`/product/${id}`);
   },
 
+  getAll: async () => {
+    return GET(`/supplier`);
+  },
+
   getPagination: async (params: PaginationRequest) => {
     return GET_PAGINATED<ProductResponse>(`/product/pagination`, { params });
   },

@@ -1,141 +1,130 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { SafeAreaView, View, ScrollView, Text } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import ListCategoryCard from '@/components/ListCategoryCard';
+import { useCategory } from '@/hooks/category/useCategory';
+import { CategoryResponse } from '@/interfaces/category.interface';
+import { useCategoryStore } from '@/stores/category.store';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import Screen from '@/components/Screen';
+import CheckoutBar from '@/components/CheckoutBar';
+import ButtonBottom from '@/components/ButtonBottom';
+import { useDiscountStore } from '@/stores/discount.store';
+import { useDiscount } from '@/hooks/discount/useDiscount';
+import { DiscountResponse } from '@/interfaces/discount.interface';
+import ListDiscount from '@/components/ListDiscount';
 
-export default function DisscountPage() {
-  const [type, setType] = useState<'percentage' | 'fixed'>('percentage');
-  const [applyTo, setApplyTo] = useState<'all' | 'category'>('all');
+export default function DiscountPage() {
+  const { getDiscountPagination, deleteDiscount } = useDiscount();
+  const navigation = useNavigation<any>();
+  const [discounts, setDiscount] = useState<any[]>([]);
+  const [deleteId, setDeleteId] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const discountStore = useDiscountStore();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const fetchDisscount = async (pageNumber: number) => {
+    const data = await getDiscountPagination({ page: pageNumber, size: 10 });
+    if (!data) return;
+
+    if (pageNumber === 1) {
+      setDiscount(data.content);
+    } else {
+      setDiscount(prev => {
+        const newCategories = data.content.filter(
+          (u: any) => !prev.some(existing => existing.id === u.id),
+        );
+        return [...prev, ...newCategories];
+      });
+    }
+
+    setHasNextPage(data.hasNextPage);
+    setPage(pageNumber);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDisscount(1);
+    }, []),
+  );
+
+  const loadMore = () => {
+    if (hasNextPage) fetchDisscount(page + 1);
+  };
+
+  const handleEdit = (category: DiscountResponse | null) => {
+    discountStore.setDiscount(category);
+    navigation.navigate('FormCategory'); // ganti sesuai route stack
+  };
+
+  const handleDelete = (category: CategoryResponse) => {
+    setDeleteId(category.id);
+    setShowDeleteModal(true);
+  };
+
+  const onDeleteConfirm = async () => {
+    if (!deleteId) return;
+    await deleteDiscount(deleteId);
+    await fetchDisscount(1);
+    setShowDeleteModal(false);
+  };
 
   return (
-    <View className="flex-1 bg-[#0f1a14] px-5 pt-10">
-      {/* HEADER */}
-      <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-white text-lg font-semibold">New Discount</Text>
-        <Text className="text-gray-400 text-xl">✕</Text>
+    <Screen className="flex-1">
+      {/* Search Input */}
+      <View className="px-5 mb-5 mt-5">
+        <Input placeholder="Search..." />
       </View>
 
-      {/* DISCOUNT NAME */}
-      <Field label="Discount Name">
-        <TextInput
-          value="Flash Sale"
-          className="bg-[#16251d] rounded-xl px-4 py-3 text-white"
-          placeholderTextColor="#6b7280"
-        />
-      </Field>
+      {/* List Kategori */}
 
-      {/* DISCOUNT TYPE */}
-      <Field label="Discount Type">
-        <View className="flex-row bg-[#16251d] rounded-xl p-1">
-          <ToggleButton
-            label="% Percentage"
-            active={type === 'percentage'}
-            onPress={() => setType('percentage')}
-          />
-          <ToggleButton
-            label="$ Fixed Amount"
-            active={type === 'fixed'}
-            onPress={() => setType('fixed')}
-          />
-        </View>
-      </Field>
-
-      {/* VALUE */}
-      <Field label="Value">
-        <View className="border border-green-500 rounded-xl px-4 py-3 flex-row items-center justify-between">
-          <Text className="text-white text-xl font-semibold">15</Text>
-          <Text className="text-green-400 text-base">%</Text>
-        </View>
-      </Field>
-
-      {/* APPLY TO */}
-      <Field label="Apply to">
-        <RadioItem
-          label="All Items"
-          active={applyTo === 'all'}
-          onPress={() => setApplyTo('all')}
-        />
-        <RadioItem
-          label="Specific Category"
-          active={applyTo === 'category'}
-          onPress={() => setApplyTo('category')}
-          disabled
-        />
-      </Field>
-
-      {/* VALIDITY */}
-      <Field label="Validity">
-        <View className="flex-row space-x-3">
-          <DateBox label="Start Date" value="Oct 24, 2023" />
-          <DateBox label="End Date" value="Nov 01, 2023" />
-        </View>
-      </Field>
-    </View>
-  );
-}
-
-/* ================= COMPONENTS ================= */
-
-function Field({ label, children }: any) {
-  return (
-    <View className="mb-5">
-      <Text className="text-gray-400 text-sm mb-2">{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function ToggleButton({ label, active, onPress }: any) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`flex-1 py-3 rounded-lg items-center ${
-        active ? 'bg-green-500' : ''
-      }`}
-    >
-      <Text
-        className={`font-medium ${active ? 'text-black' : 'text-gray-400'}`}
+      {/* <View className="px-5">
+          <ListCategoryCard category={categories} onDelete={handleDelete} onEdit={handleEdit}/>
+        </View> */}
+      <ScrollView
+        className="flex-1"
+        onScroll={e => {
+          const { layoutMeasurement, contentOffset, contentSize } =
+            e.nativeEvent;
+          if (
+            layoutMeasurement.height + contentOffset.y >=
+            contentSize.height - 20
+          ) {
+            loadMore();
+          }
+        }}
       >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function RadioItem({ label, active, onPress, disabled }: any) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled}
-      className={`flex-row items-center justify-between rounded-xl px-4 py-4 mb-2 ${
-        disabled ? 'bg-[#121f19]' : 'bg-[#16251d]'
-      }`}
-    >
-      <View className="flex-row items-center space-x-3">
-        <View className="w-8 h-8 bg-[#24382d] rounded-lg items-center justify-center">
-          <Text className="text-green-400">🛒</Text>
-        </View>
-        <Text
-          className={`${disabled ? 'text-gray-500' : 'text-white'} font-medium`}
-        >
-          {label}
-        </Text>
-      </View>
-
-      <View
-        className={`w-5 h-5 rounded-full border ${
-          active ? 'border-green-500' : 'border-gray-600'
-        } items-center justify-center`}
-      >
-        {active && <View className="w-3 h-3 bg-green-500 rounded-full" />}
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function DateBox({ label, value }: any) {
-  return (
-    <View className="flex-1 bg-[#16251d] rounded-xl px-4 py-3">
-      <Text className="text-gray-400 text-xs mb-1">{label}</Text>
-      <Text className="text-white">{value}</Text>
-    </View>
+        {discounts.length === 0 ? (
+          <Text className="text-center text-gray-500 mt-5">
+            Tidak ada kategory
+          </Text>
+        ) : (
+          discounts.map(discount => (
+            <View className="mx-5">
+              <ListDiscount
+                key={discount.id}
+                discount={discount}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            </View>
+          ))
+        )}
+      </ScrollView>
+      <ButtonBottom
+        onPress={() => navigation.navigate('FormDiscount')}
+        title={'Tambah Disccount'}
+      />
+      <ConfirmDeleteModal
+        visible={showDeleteModal}
+        title="Delete Duscount"
+        message="Are you sure you want to delete this Discount?"
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={onDeleteConfirm}
+      />
+    </Screen>
   );
 }

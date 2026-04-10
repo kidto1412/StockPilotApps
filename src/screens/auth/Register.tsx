@@ -26,7 +26,7 @@ export default function Register() {
   };
 
   return (
-    <Screen className="flex-1 justify-center px-6 ">
+    <Screen className="flex-1 justify-center px-6 " hashMenu={false}>
       <Text className="text-2xl font-bold mb-6 text-center text-white">
         Daftar
       </Text>

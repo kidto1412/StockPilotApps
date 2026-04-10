@@ -12,6 +12,9 @@ import CategoryForm from '@/screens/category/Form';
 import SalesPage from '@/screens/sales/Sales';
 import DisscountPage from '@/screens/disccount/Disscount';
 import CheckoutScreen from '@/screens/sales/Checkout';
+import FormDisscount from '@/screens/disccount/Form';
+import MyDrawer from './Drawer';
+import SupplierForm from '@/screens/supplier/SupplierForm';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -28,10 +31,11 @@ export default function MainNavigator() {
       }}
     >
       <Stack.Screen
-        name="Tabs"
-        component={BottomTabsNavigator}
+        name="Drawer"
+        component={MyDrawer}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="Tabs" component={BottomTabsNavigator} />
 
       {/* screen lain yang akan dipanggil dari Home menu */}
       <Stack.Screen name="Home" component={HomePage} />
@@ -44,7 +48,9 @@ export default function MainNavigator() {
       <Stack.Screen name="Customer" component={CustomerPage} />
       <Stack.Screen name="Sales" component={SalesPage} />
       <Stack.Screen name="Discount" component={DisscountPage} />
+      <Stack.Screen name="FormDiscount" component={FormDisscount} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="SupplierForm" component={SupplierForm} />
     </Stack.Navigator>
   );
 }

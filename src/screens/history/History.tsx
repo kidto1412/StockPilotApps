@@ -11,6 +11,7 @@ import { HistoryCardProps } from '@/types/history-card.type';
 import { ScrollView } from 'react-native-gesture-handler';
 import Input from '@/components/Input';
 import DatePicker from '@/components/DatePicker';
+import Screen from '@/components/Screen';
 
 const data: HistoryCardProps[] = [
   {
@@ -38,20 +39,22 @@ const data: HistoryCardProps[] = [
     cardNumber: '**** 0098',
   },
 ];
-const [date, setDate] = useState(new Date());
 
 export default function History() {
+  const [date, setDate] = useState(new Date());
   return (
-    <View className="mx-3">
-      <Text className="font-bold mb-5 ">Riwayat</Text>
-      <Input label="Cari" placeholder="Cari...."></Input>
-      {/* <DatePicker label="Pilih tanggal" value={date} onChange={setDate} /> */}
-      <FlatList
-        data={data}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => <HistoryCard {...item} />}
-      />
-    </View>
+    <Screen className="flex-1 p-5">
+      <View className="p-3">
+        <Text className="font-bold mb-5 text-white">Riwayat</Text>
+        <Input label="Cari" placeholder="Cari...."></Input>
+        {/* <DatePicker label="Pilih tanggal" value={date} onChange={setDate} /> */}
+        <FlatList
+          data={data}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => <HistoryCard {...item} />}
+        />
+      </View>
+    </Screen>
   );
 }
 

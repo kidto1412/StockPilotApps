@@ -5,21 +5,44 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/hooks/auth/useAuth';
 import Screen from '@/components/Screen';
+import * as yup from 'yup';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const router = useNavigation<any>();
 
-  const { login } = useAuth();
+  const loginSchema = yup.object({
+    username: yup
+      .string()
 
-  const onSubmit = async () => {
+      .required('Username wajib diisi'),
+
+    password: yup
+      .string()
+      .min(6, 'Password minimal 6 karakter')
+      .required('Password wajib diisi'),
+  });
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+  });
+  const { login } = useAuth();
+  interface LoginRequest {
+    username: string;
+    password: string;
+  }
+  const onSubmit = async (data: LoginRequest) => {
     console.log('login');
-    await login(username, password);
+    await login(data.username, data.password);
   };
 
   return (
-    <Screen className="justify-center px-6">
+    <Screen className="justify-center px-6" safeBottom hashMenu={false}>
       <View className="items-center">
         <Image
           source={require('@/assets/img/logo-transparent.png')}
@@ -40,20 +63,34 @@ export default function Login() {
       </View>
       {/* Username */}
       <View className="mb-4">
-        <Input
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
+        <Controller
+          control={control}
+          name="username"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              placeholder="Username"
+              value={value}
+              onChangeText={onChange}
+              error={errors.username?.message}
+            />
+          )}
         />
       </View>
 
       {/* Password */}
       <View className="mb-4">
-        <Input
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          type="password"
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              placeholder="Password"
+              value={value}
+              onChangeText={onChange}
+              error={errors.password?.message}
+              type="password"
+            />
+          )}
         />
       </View>
 
@@ -61,7 +98,7 @@ export default function Login() {
       <Button
         title="Login"
         className="mt-2 primary"
-        onPress={onSubmit}
+        onPress={handleSubmit(onSubmit)}
         textClassName="text-white"
       />
 
@@ -75,7 +112,7 @@ export default function Login() {
         title="Lanjutkan dengan Google"
         className="mt-2 bg-white border-gray-300"
         textClassName="text-black"
-        onPress={onSubmit}
+        onPress={handleSubmit(onSubmit)}
       />
 
       {/* Links */}
