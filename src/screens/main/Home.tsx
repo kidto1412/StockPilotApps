@@ -52,7 +52,7 @@ export default function HomePage() {
         </View>
 
         {/* Notification Icon */}
-        <View className="relative">
+        {/* <View className="relative">
           <ShoppingCart size={24} color="white" />
 
           <View
@@ -60,7 +60,7 @@ export default function HomePage() {
           >
             <Badge count={3} size={18} color="red" />
           </View>
-        </View>
+        </View> */}
       </View>
 
       {/* Menu */}

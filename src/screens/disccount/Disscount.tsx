@@ -1,15 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { SafeAreaView, View, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import Button from '@/components/Button';
 import Input from '@/components/Input';
-import ListCategoryCard from '@/components/ListCategoryCard';
-import { useCategory } from '@/hooks/category/useCategory';
-import { CategoryResponse } from '@/interfaces/category.interface';
-import { useCategoryStore } from '@/stores/category.store';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import Screen from '@/components/Screen';
-import CheckoutBar from '@/components/CheckoutBar';
 import ButtonBottom from '@/components/ButtonBottom';
 import { useDiscountStore } from '@/stores/discount.store';
 import { useDiscount } from '@/hooks/discount/useDiscount';
@@ -57,10 +51,10 @@ export default function DiscountPage() {
 
   const handleEdit = (category: DiscountResponse | null) => {
     discountStore.setDiscount(category);
-    navigation.navigate('FormCategory'); // ganti sesuai route stack
+    navigation.navigate('FormDiscount');
   };
 
-  const handleDelete = (category: CategoryResponse) => {
+  const handleDelete = (category: DiscountResponse) => {
     setDeleteId(category.id);
     setShowDeleteModal(true);
   };
@@ -103,9 +97,8 @@ export default function DiscountPage() {
           </Text>
         ) : (
           discounts.map(discount => (
-            <View className="mx-5">
+            <View className="mx-5" key={discount.id}>
               <ListDiscount
-                key={discount.id}
                 discount={discount}
                 onDelete={handleDelete}
                 onEdit={handleEdit}

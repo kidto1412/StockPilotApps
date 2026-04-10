@@ -30,6 +30,11 @@ export async function PUT<T>(url: string, body: any, config: object = {}) {
   return res.data;
 }
 
+export async function PATCH<T>(url: string, body: any, config: object = {}) {
+  const res = await api.patch<APIResponse<T>>(url, body, config);
+  return res.data;
+}
+
 export async function DELETE<T>(url: string, config: object = {}) {
   const res = await api.delete<APIResponse<T>>(url, config);
   return res.data;

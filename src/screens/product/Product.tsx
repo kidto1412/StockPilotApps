@@ -36,17 +36,27 @@ import { ChevronRight } from 'lucide-react-native';
 import { formatRupiah } from '@/utils/formatRupiah';
 import { useToastMessage } from '@/providers/toast.provider';
 import { getImageUrl } from '@/utils/getImage.util';
+import { usePurchaseCartStore } from '@/stores/purchase-cart.store';
 
 export default function ProductPage() {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const navigation = useNavigation<any>();
-  const route = useRoute<RouteProp<DrawerParamList, 'Product' | 'Stock'>>();
+  const route =
+    useRoute<RouteProp<DrawerParamList, 'Product' | 'Stock' | 'Pembelian'>>();
   const source =
-    route.params?.source ?? (route.name === 'Stock' ? 'stock' : 'product');
+    route.params?.source ??
+    (route.name === 'Stock'
+      ? 'stock'
+      : route.name === 'Pembelian'
+        ? 'purchase'
+        : 'product');
   const isStockMenu = source === 'stock';
+  const isPurchaseMenu = source === 'purchase';
   const { getProductPagination, deleteProduct } = useProduct();
   const { showToast } = useToastMessage();
+  const { addItem, items } = usePurchaseCartStore();
+  const totalCartItems = items.reduce((sum, item) => sum + item.qty, 0);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [showStockActionDialog, setShowStockActionDialog] = useState(false);
@@ -141,6 +151,12 @@ export default function ProductPage() {
     setShowStockActionDialog(true);
   };
 
+  const handlePurchaseItemPress = (product: ProductResponse) => {
+    if (!isPurchaseMenu) return;
+    addItem(product);
+    showToast(`${product.name} ditambahkan ke keranjang`, 'success');
+  };
+
   const openStockForm = () => {
     if (!selectedProduct) return;
     productStore.setProduct(selectedProduct);
@@ -176,7 +192,11 @@ export default function ProductPage() {
       {/* <FilterScroll /> */}
       {products.length == 0 ? (
         <Text className="text-center text-gray-500 mt-5">
-          {isStockMenu ? 'Tidak ada stok produk' : 'Tidak ada Product'}
+          {isStockMenu
+            ? 'Tidak ada stok produk'
+            : isPurchaseMenu
+              ? 'Tidak ada produk untuk pembelian'
+              : 'Tidak ada Product'}
         </Text>
       ) : (
         <FlatList
@@ -191,20 +211,47 @@ export default function ProductPage() {
               item={item}
               onDelete={handleDelete}
               onEdit={onEdit}
-              onPressItem={isStockMenu ? handleStockItemPress : undefined}
-              showActions={!isStockMenu}
+              onPressItem={
+                isStockMenu
+                  ? handleStockItemPress
+                  : isPurchaseMenu
+                    ? handlePurchaseItemPress
+                    : undefined
+              }
+              showActions={!isStockMenu && !isPurchaseMenu}
             />
           )}
           ListFooterComponent={<View style={{ height: 120 }} />}
         />
       )}
 
-      <ButtonBottom
-        title={isStockMenu ? 'Tambah Stok' : 'Tambah Produk'}
-        onPress={() => {
-          navigation.navigate('FormProduct');
-        }}
-      />
+      {isPurchaseMenu ? (
+        <View className="absolute bottom-4 left-4 right-4 flex-row">
+          <TouchableOpacity
+            className="flex-1 bg-[#24382d] rounded-2xl px-4 py-4 items-center justify-center mr-2"
+            onPress={() => navigation.navigate('FormProduct')}
+          >
+            <Text className="font-semibold text-white">Tambah Barang</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-green-500 rounded-2xl px-4 py-4 items-center justify-center ml-2"
+            onPress={() =>
+              navigation.navigate('Checkout', { mode: 'purchase' })
+            }
+          >
+            <Text className="font-semibold text-black">
+              {`Keranjang (${totalCartItems})`}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ButtonBottom
+          title={isStockMenu ? 'Tambah Stok' : 'Tambah Produk'}
+          onPress={() => {
+            navigation.navigate('FormProduct');
+          }}
+        />
+      )}
       <ConfirmDeleteModal
         visible={showDeleteModal}
         title="Delete product"
@@ -215,7 +262,7 @@ export default function ProductPage() {
 
       <Modal
         transparent
-        visible={showStockActionDialog}
+        visible={showStockActionDialog && isStockMenu}
         animationType="fade"
         onRequestClose={() => setShowStockActionDialog(false)}
       >

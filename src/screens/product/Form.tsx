@@ -91,12 +91,14 @@ export default function ProductFormPage() {
   }, [product]);
 
   return (
-    <Screen>
-      <ScrollView className="mb-16">
+    <Screen hashMenu={false}>
+      <ScrollView
+        className="mb-16"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 140 }}
+      >
         <Text className="font-bold ml-1 p-5 text-white">Form Produk</Text>
-        <View style={{ alignItems: 'flex-start' }} className="ml-5 mb-5">
-          <Button title="Supplier" onPress={() => setOpenDialog(true)}></Button>
-        </View>
+
         <Dialog
           visible={openDialog}
           title="Supplier"

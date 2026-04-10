@@ -1,85 +1,195 @@
-import React from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import Screen from '../../components/Screen';
+import Input from '@/components/Input';
+import SelectBox from '@/components/SelectBox';
+import { useReportTransaction } from '@/hooks/report/useReportTransaction';
+import { ReportTransactionItem } from '@/interfaces/report-transaction.interface';
+import { formatRupiah } from '@/utils/formatRupiah';
 
-const screenWidth = Dimensions.get('window').width;
+const today = new Date();
+const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+const toIsoDate = (date: Date) => {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, '0');
+  const d = `${date.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const paymentMethodOptions = [
+  { label: 'Semua Metode', value: '' },
+  { label: 'CASH', value: 'CASH' },
+  { label: 'CARD', value: 'CARD' },
+  { label: 'TRANSFER', value: 'TRANSFER' },
+];
+
+const statusOptions = [
+  { label: 'Semua Status', value: '' },
+  { label: 'COMPLETED', value: 'COMPLETED' },
+  { label: 'PENDING', value: 'PENDING' },
+  { label: 'CANCELLED', value: 'CANCELLED' },
+];
 
 const ReportPage = () => {
+  const { getReportTransaction, exportReportTransaction } =
+    useReportTransaction();
+  const [items, setItems] = useState<ReportTransactionItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  const [startDate, setStartDate] = useState(toIsoDate(firstDay));
+  const [endDate, setEndDate] = useState(toIsoDate(today));
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
+
+  const fetchReport = async (targetPage: number, reset = false) => {
+    const data = await getReportTransaction({
+      page: targetPage,
+      size: 10,
+      startDate,
+      endDate,
+      paymentMethod: paymentMethod || undefined,
+      status: status || undefined,
+    });
+
+    if (!data) return;
+
+    if (reset || targetPage === 1) {
+      setItems(data.content ?? []);
+    } else {
+      setItems(prev => [
+        ...prev,
+        ...(data.content ?? []).filter(
+          (item: ReportTransactionItem) =>
+            !prev.some(existing => existing.id === item.id),
+        ),
+      ]);
+    }
+
+    setPage(targetPage);
+    setHasNextPage(Boolean(data.hasNextPage));
+  };
+
+  useEffect(() => {
+    fetchReport(1, true);
+  }, []);
+
+  const handleApplyFilter = () => {
+    fetchReport(1, true);
+  };
+
+  const handleLoadMore = () => {
+    if (!hasNextPage) return;
+    fetchReport(page + 1);
+  };
+
+  const exportExcel = async () => {
+    await exportReportTransaction({
+      groupBy: 'DAILY',
+      format: 'EXCEL',
+      startDate,
+      endDate,
+    });
+  };
+
+  const exportPdf = async () => {
+    await exportReportTransaction({
+      groupBy: 'MONTHLY',
+      format: 'PDF',
+      startDate,
+      endDate,
+    });
+  };
+
   return (
-    <ScrollView>
-      <Screen className="p-4">
-        {/* Header */}
-        <Text className="text-xl font-bold mb-4 text-white">June 2024</Text>
+    <Screen className="px-4">
+      <Text className="text-white font-bold text-xl mb-4">
+        Report Transaction
+      </Text>
 
-        {/* Summary */}
-        <View className="flex-row justify-between mb-4">
-          <View className="bg-green-100 p-4 rounded-lg flex-1 mr-2">
-            <Text className="text-sm text-gray-500">Expenses</Text>
-            <Text className="text-lg font-bold">$8,780.81</Text>
-            <Text className="text-green-600 mt-1">▲ 20% than last month</Text>
-          </View>
-          <View className="bg-purple-100 p-4 rounded-lg flex-1 ml-2">
-            <Text className="text-sm text-gray-500">Money In</Text>
-            <Text className="text-lg font-bold">$8,780.81</Text>
-            <Text className="text-red-600 mt-1">▼ 20% than last month</Text>
-          </View>
-        </View>
+      <Input
+        label="Start Date (YYYY-MM-DD)"
+        value={startDate}
+        onChangeText={setStartDate}
+        placeholder="2026-04-01"
+      />
+      <Input
+        label="End Date (YYYY-MM-DD)"
+        value={endDate}
+        onChangeText={setEndDate}
+        placeholder="2026-04-10"
+      />
 
-        {/* Chart */}
-        <LineChart
-          data={{
-            labels: ['1-7', '8-14', '15-21', '22-28', '29-30'],
-            datasets: [
-              {
-                data: [1000, 2000, 2400, 5100, 1200],
-                color: () => 'rgba(34,197,94,0.6)', // green for expenses
-              },
-              {
-                data: [500, 1500, 2100, 3500, 900],
-                color: () => 'rgba(139,92,246,0.6)', // purple for money in
-              },
-            ],
-            legend: ['Expenses', 'Money In'],
-          }}
-          width={screenWidth - 32}
-          height={220}
-          chartConfig={{
-            backgroundGradientFrom: '#f0f0f0',
-            backgroundGradientTo: '#f0f0f0',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(0,0,0, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0,0,0, ${opacity})`,
-            propsForDots: {
-              r: '4',
-              strokeWidth: '2',
-              stroke: '#fff',
-            },
-          }}
-          style={{ borderRadius: 12, marginBottom: 16 }}
-        />
+      <SelectBox
+        className="mb-3"
+        options={paymentMethodOptions}
+        selectedValue={paymentMethod}
+        onValueChange={value => setPaymentMethod(String(value))}
+        placeholder="Pilih Metode Pembayaran"
+      />
+      <SelectBox
+        className="mb-4"
+        options={statusOptions}
+        selectedValue={status}
+        onValueChange={value => setStatus(String(value))}
+        placeholder="Pilih Status"
+      />
 
-        {/* Other Report */}
-        <View className="flex-row flex-wrap justify-between">
-          <View className="bg-blue-100 p-4 rounded-lg w-[48%] mb-4">
-            <Text className="text-sm text-gray-500">Total Orders</Text>
-            <Text className="text-lg font-bold">10,580</Text>
+      <View className="flex-row mb-3">
+        <TouchableOpacity
+          className="bg-green-600 rounded-lg py-3 flex-1 mr-2"
+          onPress={handleApplyFilter}
+        >
+          <Text className="text-center text-white font-semibold">
+            Apply Filter
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className="bg-emerald-500 rounded-lg py-3 flex-1 ml-2"
+          onPress={exportExcel}
+        >
+          <Text className="text-center text-black font-semibold">
+            Export Excel
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <TouchableOpacity
+        className="bg-red-500 rounded-lg py-3 mb-4"
+        onPress={exportPdf}
+      >
+        <Text className="text-center text-white font-semibold">Export PDF</Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={items}
+        keyExtractor={item => item.id}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        ListEmptyComponent={
+          <Text className="text-center text-gray-400 mt-8">
+            Belum ada data report transaction
+          </Text>
+        }
+        renderItem={({ item }) => (
+          <View className="bg-[#1f2a24] rounded-xl p-4 mb-3">
+            <Text className="text-white font-semibold">
+              {item.invoiceNumber || item.id}
+            </Text>
+            <Text className="text-gray-400 text-xs mt-1">
+              {item.paymentMethod} • {item.status}
+            </Text>
+            <Text className="text-green-400 font-bold mt-2">
+              {formatRupiah(item.totalAmount ?? 0)}
+            </Text>
+            <Text className="text-gray-500 text-xs mt-1">
+              {item.createdAt || '-'}
+            </Text>
           </View>
-          <View className="bg-yellow-100 p-4 rounded-lg w-[48%] mb-4">
-            <Text className="text-sm text-gray-500">Views Product</Text>
-            <Text className="text-lg font-bold">2,234</Text>
-          </View>
-          <View className="bg-pink-100 p-4 rounded-lg w-[48%] mb-4">
-            <Text className="text-sm text-gray-500">Total Customers</Text>
-            <Text className="text-lg font-bold">24,805</Text>
-          </View>
-          <View className="bg-orange-100 p-4 rounded-lg w-[48%] mb-4">
-            <Text className="text-sm text-gray-500">Total Delivery</Text>
-            <Text className="text-lg font-bold">11,250</Text>
-          </View>
-        </View>
-      </Screen>
-    </ScrollView>
+        )}
+      />
+    </Screen>
   );
 };
 

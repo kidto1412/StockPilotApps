@@ -49,7 +49,11 @@ export default function MainNavigator() {
       <Stack.Screen name="Sales" component={SalesPage} />
       <Stack.Screen name="Discount" component={DisscountPage} />
       <Stack.Screen name="FormDiscount" component={FormDisscount} />
-      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="SupplierForm" component={SupplierForm} />
     </Stack.Navigator>
   );

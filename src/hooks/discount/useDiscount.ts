@@ -1,4 +1,7 @@
-import { DiscountRequest } from '@/interfaces/discount.interface';
+import {
+  DiscountRequest,
+  DiscountUpdateRequest,
+} from '@/interfaces/discount.interface';
 import { PaginationRequest } from '@/interfaces/pagination.interface';
 
 import { useLoading } from '@/providers/loading.provider';
@@ -19,7 +22,6 @@ export function useDiscount() {
   const create = async (data: DiscountRequest) => {
     try {
       showLoading();
-      console.log(data, 'payload dis');
 
       await DiscountEndpoint.create(data);
 
@@ -33,7 +35,7 @@ export function useDiscount() {
     }
   };
 
-  const update = async (id: string, data: DiscountRequest) => {
+  const update = async (id: string, data: DiscountUpdateRequest) => {
     try {
       showLoading();
 
@@ -55,7 +57,6 @@ export function useDiscount() {
       showLoading();
 
       const res = await DiscountEndpoint.getPagination(params);
-      console.log(res.data, 'disscounts');
       return res.data;
     } catch (err) {
       const message = getErrorMessage(err);
@@ -74,6 +75,21 @@ export function useDiscount() {
     } catch (err) {
       const message = getErrorMessage(err);
       showToast(message, 'error');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const getDetail = async (id: string) => {
+    try {
+      showLoading();
+
+      const res = await DiscountEndpoint.getDetail(id);
+      return res.data;
+    } catch (err) {
+      const message = getErrorMessage(err);
+      showToast(message, 'error');
+      return null;
     } finally {
       hideLoading();
     }
@@ -99,6 +115,7 @@ export function useDiscount() {
     create,
     update,
     getDiscountPagination,
+    getDetail,
     getAll,
     deleteDiscount,
   };

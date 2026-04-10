@@ -31,7 +31,7 @@ export default function CategoryForm() {
     reset();
   };
   return (
-    <Screen className="flex-1 ">
+    <Screen className="flex-1 " hashMenu={false}>
       <Text className="font-bold text-lg ml-1 p-5 text-white">
         Form Kategori
       </Text>

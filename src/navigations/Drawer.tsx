@@ -110,6 +110,10 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
                 navigation.navigate('Stock', { source: 'stock' });
                 return;
               }
+              if (routeName === 'Pembelian') {
+                navigation.navigate('Pembelian', { source: 'purchase' });
+                return;
+              }
               navigation.navigate(routeName as never);
             }}
           />
@@ -154,9 +158,18 @@ export default function MyDrawer() {
       <Drawer.Screen name="Sales" component={SalesPage} />
       <Drawer.Screen name="Discount" component={DisscountPage} />
 
-      <Drawer.Screen name="Checkout" component={CheckoutScreen} />
+      <Drawer.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        initialParams={{ mode: 'sales' }}
+        options={{ swipeEnabled: false }}
+      />
 
-      <Drawer.Screen name="Pembelian" component={ProductFormPage} />
+      <Drawer.Screen
+        name="Pembelian"
+        component={Product}
+        initialParams={{ source: 'purchase' }}
+      />
       <Drawer.Screen name="Supplier" component={SupplierPage} />
       <Drawer.Screen
         name="Stock"

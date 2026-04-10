@@ -25,7 +25,7 @@ export type BottomTabStackParamList = {
 export type MainStackParamList = {
   Tabs: undefined;
   Home: undefined;
-  Product: { source?: 'product' | 'stock' } | undefined;
+  Product: { source?: 'product' | 'stock' | 'purchase' } | undefined;
   FormProduct: undefined;
   Employe: undefined;
   Customer: undefined;
@@ -37,7 +37,7 @@ export type MainStackParamList = {
   Sales: undefined;
   Discount: undefined;
   FormDiscount: undefined;
-  Checkout: undefined;
+  Checkout: { mode?: 'purchase' | 'sales' } | undefined;
   Drawer: undefined;
   Supplier: undefined;
   SupplierForm: undefined;
@@ -47,7 +47,7 @@ export type NavigationMainType = NativeStackScreenProps<MainStackParamList>;
 
 export type DrawerParamList = {
   Home: undefined;
-  Product: { source?: 'product' | 'stock' } | undefined;
+  Product: { source?: 'product' | 'stock' | 'purchase' } | undefined;
   FormProduct: undefined;
   Category: undefined;
   FormCategory: undefined;
@@ -57,9 +57,9 @@ export type DrawerParamList = {
   Sales: undefined;
   Discount: undefined;
   FormDiscount: undefined;
-  Checkout: undefined;
+  Checkout: { mode?: 'purchase' | 'sales' } | undefined;
   Tabs: undefined;
-  Pembelian: undefined;
+  Pembelian: { source?: 'product' | 'stock' | 'purchase' } | undefined;
   Supplier: undefined;
-  Stock: { source?: 'product' | 'stock' } | undefined;
+  Stock: { source?: 'product' | 'stock' | 'purchase' } | undefined;
 };

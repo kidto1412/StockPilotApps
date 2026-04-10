@@ -1,191 +1,160 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { useEffect, useState } from 'react';
-import { DiscountRequest } from '@/interfaces/discount.interface';
+import ButtonBottom from '@/components/ButtonBottom';
+import CurrencyInput from '@/components/CurrencyInput';
+import Input from '@/components/Input';
+import Screen from '@/components/Screen';
+import {
+  DiscountRequest,
+  DiscountUpdateRequest,
+} from '@/interfaces/discount.interface';
+import { useToastMessage } from '@/providers/toast.provider';
 import { useDiscountStore } from '@/stores/discount.store';
 import { useDiscount } from '@/hooks/discount/useDiscount';
-import Input from '@/components/Input';
-import ButtonBottom from '@/components/ButtonBottom';
-import DatePicker from '@/components/DatePicker';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function FormDisscount() {
-  const [type, setType] = useState<'percentage' | 'fixed'>('percentage');
-  const [applyTo, setApplyTo] = useState<'all' | 'category'>('all');
+  const { create, update } = useDiscount();
+  const { discount, reset } = useDiscountStore();
+  const { showToast } = useToastMessage();
+
   const [form, setForm] = useState<DiscountRequest>({
     name: '',
     description: '',
     valueType: 'PERCENT',
     value: 0,
-    startDate: "",
-    endDate: "",
   });
-  const { create, update } = useDiscount();
-  const { discount, reset } = useDiscountStore();
 
   useEffect(() => {
-    if (discount) {
-      setForm({
-        name: discount.name,
-        description: discount.description ?? '',
-        valueType: discount.valueType,
-        value: discount.value,
-        startDate: discount.startDate,
-        endDate: discount.endDate,
-      });
-    }
+    if (!discount) return;
+
+    setForm({
+      name: discount.name,
+      description: discount.description ?? '',
+      valueType: discount.valueType,
+      value: discount.value,
+    });
   }, [discount]);
 
   const onSubmit = async () => {
-    const payload: DiscountRequest = {
-    ...form,
-    startDate: form.startDate.toISOString(),
-    endDate: form.endDate.toISOString(),
-  };
+    if (!form.name.trim()) {
+      showToast('Nama discount wajib diisi', 'error');
+      return;
+    }
+
+    if (!Number(form.value) || Number(form.value) <= 0) {
+      showToast('Value discount harus lebih dari 0', 'error');
+      return;
+    }
 
     if (!discount) {
-      await create(form);
+      await create({
+        name: form.name,
+        description: form.description,
+        valueType: form.valueType,
+        value: Number(form.value),
+      });
     } else {
-      await update(discount.id, form);
+      const payload: DiscountUpdateRequest = {
+        name: form.name,
+        description: form.description,
+        valueType: form.valueType,
+        value: Number(form.value),
+      };
+      await update(discount.id, payload);
     }
+
     reset();
   };
 
   return (
-    <View className="flex-1 bg-[#0f1a14] px-5 pt-10">
-      {/* HEADER */}
-      <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-white text-lg font-semibold">New Discount</Text>
-        <Text className="text-gray-400 text-xl">✕</Text>
-      </View>
+    <Screen hashMenu={false}>
+      <ScrollView
+        className="px-5"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 140 }}
+      >
+        <Text className="text-white text-xl font-bold mt-3 mb-5">
+          {discount ? 'Edit Discount' : 'New Discount'}
+        </Text>
 
-      {/* DISCOUNT NAME */}
-      <Field label="Discount Name">
         <Input
+          label="Discount Name"
           value={form.name}
           onChangeText={text => setForm({ ...form, name: text })}
-          className="bg-[#16251d] rounded-xl px-4 py-3 text-white"
-          placeholderTextColor="#6b7280"
+          placeholder="Diskon Lebaran 10%"
         />
-      </Field>
 
-      <Field label="Description">
         <Input
+          label="Description"
           value={form.description}
           onChangeText={text => setForm({ ...form, description: text })}
-          className="bg-[#16251d] rounded-xl px-4 py-3 text-white"
-          placeholderTextColor="#6b7280"
+          placeholder="Promo lebaran"
         />
-      </Field>
 
-      {/* DISCOUNT TYPE */}
-      <Field label="Discount Type">
-        <View className="flex-row bg-[#16251d] rounded-xl p-1">
-          <ToggleButton
-            label="% Percentage"
-            active={form.valueType === 'PERCENT'}
-            onPress={() => setForm({ ...form, valueType: 'PERCENT' })}
-          />
-          <ToggleButton
-            label="$Fixed Amount"
-            active={form.valueType === 'AMOUNT'}
-            onPress={() => setForm({ ...form, valueType: 'AMOUNT' })}
-          />
+        <View className="mb-5">
+          <Text className="text-gray-300 mb-2">Value Type</Text>
+          <View className="flex-row bg-[#16251d] rounded-xl p-1">
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg items-center ${
+                form.valueType === 'PERCENT' ? 'bg-green-500' : ''
+              }`}
+              onPress={() => setForm({ ...form, valueType: 'PERCENT' })}
+            >
+              <Text
+                className={`font-medium ${
+                  form.valueType === 'PERCENT' ? 'text-black' : 'text-gray-300'
+                }`}
+              >
+                % Percent
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className={`flex-1 py-3 rounded-lg items-center ${
+                form.valueType === 'AMOUNT' ? 'bg-green-500' : ''
+              }`}
+              onPress={() => setForm({ ...form, valueType: 'AMOUNT' })}
+            >
+              <Text
+                className={`font-medium ${
+                  form.valueType === 'AMOUNT' ? 'text-black' : 'text-gray-300'
+                }`}
+              >
+                Nominal
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </Field>
 
-      {/* VALUE */}
-      <Field label="Value">
-        <Input
-          placeholder="Value"
-          keyboardType="numeric"
-          value={String(form.value)}
-          onChangeText={text => setForm({ ...form, value: Number(text) })}
-        />
-      </Field>
+        {form.valueType === 'AMOUNT' ? (
+          <CurrencyInput
+            label="Nominal"
+            value={String(form.value || '')}
+            onChangeValue={value =>
+              setForm({
+                ...form,
+                value: Number(value) || 0,
+              })
+            }
+            placeholder="5000"
+          />
+        ) : (
+          <Input
+            label="Value (%)"
+            keyboardType="numeric"
+            value={String(form.value || '')}
+            onChangeText={text =>
+              setForm({
+                ...form,
+                value: Number(text.replace(/[^0-9]/g, '')) || 0,
+              })
+            }
+            placeholder="10"
+          />
+        )}
+      </ScrollView>
 
-      {/* VALIDITY */}
-      <Field label="Validity">
-        <View className="flex-row space-x-3">
-          <DatePicker
-            label="Start Date"
-            value={form.startDate = new Date()}
-            onChange={date => setForm({ ...form, startDate: date })}
-          />
-          <DatePicker
-            label="End Date"
-            value={form.endDate}
-            onChange={date => setForm({ ...form, endDate: date })}
-          />
-        </View>
-      </Field>
       <ButtonBottom title="Simpan" onPress={onSubmit} />
-    </View>
-  );
-}
-
-/* ================= COMPONENTS ================= */
-
-function Field({ label, children }: any) {
-  return (
-    <View className="mb-5">
-      <Text className="text-gray-400 text-sm mb-2">{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function ToggleButton({ label, active, onPress }: any) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`flex-1 py-3 rounded-lg items-center ${
-        active ? 'bg-green-500' : ''
-      }`}
-    >
-      <Text
-        className={`font-medium ${active ? 'text-black' : 'text-gray-400'}`}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function RadioItem({ label, active, onPress, disabled }: any) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled}
-      className={`flex-row items-center justify-between rounded-xl px-4 py-4 mb-2 ${
-        disabled ? 'bg-[#121f19]' : 'bg-[#16251d]'
-      }`}
-    >
-      <View className="flex-row items-center space-x-3">
-        <View className="w-8 h-8 bg-[#24382d] rounded-lg items-center justify-center">
-          <Text className="text-green-400">🛒</Text>
-        </View>
-        <Text
-          className={`${disabled ? 'text-gray-500' : 'text-white'} font-medium`}
-        >
-          {label}
-        </Text>
-      </View>
-
-      <View
-        className={`w-5 h-5 rounded-full border ${
-          active ? 'border-green-500' : 'border-gray-600'
-        } items-center justify-center`}
-      >
-        {active && <View className="w-3 h-3 bg-green-500 rounded-full" />}
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function DateBox({ label, value }: any) {
-  return (
-    <View className="flex-1 bg-[#16251d] rounded-xl px-4 py-3">
-      <Text className="text-gray-400 text-xs mb-1">{label}</Text>
-      <Text className="text-white">{value}</Text>
-    </View>
+    </Screen>
   );
 }

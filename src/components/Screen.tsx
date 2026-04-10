@@ -18,15 +18,27 @@ export default function Screen({
   safeBottom = false,
   hashMenu = true,
 }: ScreenProps) {
-  type HomeNavProp = DrawerNavigationProp<DrawerParamList, 'Home'>;
-  const navigation = useNavigation<HomeNavProp>();
+  const navigation = useNavigation<any>();
+
+  const onMenuPress = () => {
+    if (typeof navigation?.toggleDrawer === 'function') {
+      navigation.toggleDrawer();
+      return;
+    }
+
+    const parent = navigation?.getParent?.();
+    if (parent && typeof parent.toggleDrawer === 'function') {
+      parent.toggleDrawer();
+    }
+  };
+
   return (
     <SafeAreaView
       edges={safeBottom ? ['top', 'bottom'] : ['top']}
       className={`flex-1 base ${className}`}
     >
       <View className="ml-3 my-5">
-        <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+        <TouchableOpacity onPress={onMenuPress}>
           {hashMenu ? <MenuIcon size={28} color="#fff" /> : <></>}
         </TouchableOpacity>
       </View>
