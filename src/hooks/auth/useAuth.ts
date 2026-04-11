@@ -7,10 +7,9 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useUserState } from '@/stores/user.store';
 import { RootStackParamList } from '@/types/navigation.type';
 import { getErrorMessage } from '@/utils/global-message.util';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // import { useRouter } from "expo-router";
-import { useState } from 'react';
 
 type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,19 +20,29 @@ export function useAuth() {
   const setUserId = useAuthStore(s => s.setUserId);
   const { showLoading, hideLoading } = useLoading();
   const { showToast } = useToastMessage();
-
-  const [data, setData] = useState(null);
   const navigation = useNavigation<RootNavigation>();
 
-  const getProfile = async () => {
-    console.log('hit');
+  const getProfile = async (role?: string) => {
     try {
-      const response = await AuthEndpoint.profile();
-      console.log(response);
+      let response;
+
+      if (role) {
+        response = await AuthEndpoint.profile(role);
+      } else {
+        // Jika role belum diketahui, coba owner dulu lalu fallback ke staff
+        try {
+          response = await AuthEndpoint.profile('OWNER');
+        } catch {
+          response = await AuthEndpoint.profile('STAFF');
+        }
+      }
+
       await setProfile(response.data);
+      return response.data;
     } catch (error) {
       const message = getErrorMessage(error);
       showToast(message, 'error');
+      return null;
     }
   };
 
@@ -68,7 +77,7 @@ export function useAuth() {
 
       await setAuth(res.data.token);
       await setUserId(res.data.userId);
-      await getProfile();
+      await getProfile('OWNER');
 
       (navigation.replace('Store'),
         showToast('Register berhasil 🎉', 'success'));
@@ -120,5 +129,5 @@ export function useAuth() {
     }
   };
 
-  return { login, checkToken, register, logout };
+  return { login, checkToken, register, logout, getProfile };
 }

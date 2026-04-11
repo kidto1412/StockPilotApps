@@ -162,7 +162,12 @@ export default function ProductFormPage() {
           </View>
         </Dialog>
         <View>
-          <ImageUploadCard onImageSelected={img => setImage(img)} />
+          <ImageUploadCard
+            onImageSelected={img => setImage(img)}
+            initialImage={
+              typeof image === 'string' ? image : image?.uri ? image.uri : null
+            }
+          />
         </View>
         <View className="px-5 mb-5">
           <Input

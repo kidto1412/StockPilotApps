@@ -13,8 +13,13 @@ export const AuthEndpoint = {
   login(payload: LoginRequest) {
     return POST<LoginResponse>('/auth/login', payload);
   },
-  profile() {
-    return GET<ProfileResponse>('/users/profile/owner');
+  profile(role?: string) {
+    const normalizedRole = (role || '').toUpperCase();
+    const path =
+      normalizedRole === 'OWNER'
+        ? '/users/profile/owner'
+        : '/users/profile/staff';
+    return GET<ProfileResponse>(path);
   },
   register(payload: RegisterRequest) {
     return POST<RegisterResponse>('/auth/register', payload);

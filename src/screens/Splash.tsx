@@ -10,7 +10,7 @@ type SplashProps = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 export default function SplashScreen({ navigation }: SplashProps) {
   const token = useAuthStore(state => state.token);
   console.log(token);
-  const { checkToken } = useAuth();
+  const { checkToken, getProfile } = useAuth();
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
@@ -21,6 +21,7 @@ export default function SplashScreen({ navigation }: SplashProps) {
       const valid = await checkToken();
 
       if (valid) {
+        await getProfile();
         navigation.replace('Main'); // langsung ke Main
       } else {
         useAuthStore.getState().logout();

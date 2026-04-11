@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Pressable, Text, View, Alert, Platform } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { UploadCloud } from 'lucide-react-native';
-import Button from './Button';
+import { Camera, ImagePlus, Trash2, UploadCloud } from 'lucide-react-native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 interface ImageUploadCardProps {
@@ -73,41 +72,64 @@ export default function ImageUploadCard({
   };
 
   return (
-    <View className="w-full px-5 mb-5">
-      <Pressable
-        onPress={pickFromGallery}
-        className="border border-dashed border-gray-400 rounded-xl p-6 bg-gray-50 items-center justify-center"
-      >
+    <View className="w-full px-5 mb-6">
+      <Text className="text-white font-medium mb-2">Foto Produk</Text>
+
+      <View className="rounded-2xl border border-gray-700 bg-[#151515] p-3">
+        <Pressable
+          onPress={pickFromGallery}
+          className="rounded-xl border border-dashed border-gray-500 bg-[#0f0f0f] items-center justify-center overflow-hidden"
+          style={{ height: 220 }}
+        >
+          {imageUri ? (
+            <View className="w-full h-full p-2">
+              <Image
+                source={{ uri: imageUri }}
+                className="w-full h-full rounded-lg"
+                resizeMode="contain"
+              />
+            </View>
+          ) : (
+            <View className="items-center px-5">
+              <UploadCloud size={34} color="#9CA3AF" />
+              <Text className="mt-2 text-gray-200 font-semibold text-center">
+                Pilih foto produk
+              </Text>
+              <Text className="text-xs text-gray-400 mt-1 text-center">
+                Preview akan ditampilkan proporsional tanpa terpotong
+              </Text>
+            </View>
+          )}
+        </Pressable>
+
+        <View className="flex-row mt-3">
+          <Pressable
+            onPress={pickFromGallery}
+            className="flex-1 rounded-xl bg-[#24382d] py-3 items-center justify-center mr-2 flex-row"
+          >
+            <ImagePlus size={16} color="#fff" />
+            <Text className="text-white font-medium ml-2">Galeri</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={openCamera}
+            className="flex-1 rounded-xl bg-green-500 py-3 items-center justify-center ml-2 flex-row"
+          >
+            <Camera size={16} color="#111" />
+            <Text className="text-black font-semibold ml-2">Buka Kamera</Text>
+          </Pressable>
+        </View>
+
         {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="w-full h-48 rounded-lg"
-            resizeMode="cover"
-          />
-        ) : (
-          <>
-            <UploadCloud size={40} color="#6C63FF" />
-            <Text className="mt-3 text-blue-600 font-medium">
-              Tap to upload photo
-            </Text>
-            <Text className="text-xs text-gray-500 mt-1">
-              PNG, JPG max 800×400px
-            </Text>
-          </>
-        )}
-      </Pressable>
-
-      <View className="flex-row items-center my-4">
-        <View className="flex-1 h-px bg-gray-300" />
-        <Text className="mx-3 text-gray-500">OR</Text>
-        <View className="flex-1 h-px bg-gray-300" />
+          <Pressable
+            onPress={() => handleImage(null)}
+            className="mt-3 rounded-xl border border-red-400 py-3 items-center justify-center flex-row"
+          >
+            <Trash2 size={16} color="#f87171" />
+            <Text className="text-red-400 font-medium ml-2">Hapus Foto</Text>
+          </Pressable>
+        ) : null}
       </View>
-
-      <Button
-        onPress={openCamera}
-        className="primary rounded-lg px-4 py-2 items-center"
-        title="Buka Kamera"
-      />
     </View>
   );
 }

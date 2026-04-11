@@ -1,11 +1,19 @@
 import React from 'react';
 import { ScrollView, View, Pressable, Text } from 'react-native';
-import Avatar from '@/components/Avatar';
 import Screen from '@/components/Screen';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { useUserState } from '@/stores/user.store';
+import { useEffect } from 'react';
+import { User } from 'lucide-react-native';
 
 export default function SettingPage() {
-  const { logout } = useAuth();
+  const { logout, getProfile } = useAuth();
+  const profile = useUserState(s => s.profile);
+
+  useEffect(() => {
+    // Pastikan profile selalu sinkron dari API saat membuka halaman ini
+    getProfile(profile?.role);
+  }, []);
 
   const menuItems = [
     { label: 'Ubah Akun', icon: '👤' },
@@ -25,15 +33,17 @@ export default function SettingPage() {
           Akun Saya
         </Text>
         <View className="mx-4 mt-5 bg-indigo-500 rounded-2xl p-6 items-center">
-          <Avatar
-            size={60}
-            imageUrl="https://example.com/avatar.jpg"
-            placeholder="F"
-            onPress={() => console.log('Avatar clicked')}
-          />
-          <Text className="text-white text-sm mt-2">Kasir</Text>
+          <View
+            className="items-center justify-center bg-indigo-300"
+            style={{ width: 60, height: 60, borderRadius: 30 }}
+          >
+            <User size={30} color="#1e1b4b" />
+          </View>
+          <Text className="text-white text-sm mt-2">
+            {profile?.role || '-'}
+          </Text>
           <Text className="text-white font-semibold text-lg mt-1">
-            Alex Parkinson
+            {profile?.fullName || '-'}
           </Text>
         </View>
         {/* Menu List */}
