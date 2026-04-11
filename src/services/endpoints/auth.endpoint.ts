@@ -7,6 +7,7 @@ import {
 } from '@/interfaces/auth.interface';
 import { ProfileResponse } from '@/interfaces/user.interface';
 import { GET, POST } from '@/utils/api.util';
+import { APIResponse } from '@/interfaces/base_respone.interface';
 
 export const AuthEndpoint = {
   login(payload: LoginRequest) {
@@ -20,5 +21,8 @@ export const AuthEndpoint = {
   },
   checkToken() {
     return GET<VerifyResponse>('/auth/verify');
+  },
+  logout() {
+    return POST<null>('/auth/logout', {}) as Promise<APIResponse<null>>;
   },
 };

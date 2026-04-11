@@ -5,9 +5,13 @@ import {
   DiscountRequest,
   DiscountResponse,
   DiscountUpdateRequest,
+  DiscountOperationResponse,
 } from '@/interfaces/discount.interface';
 import { GET, GET_PAGINATED, POST, PATCH, DELETE } from '@/utils/api.util';
-import { PaginationResponse } from '@/interfaces/base_respone.interface';
+import {
+  PaginationResponse,
+  APIResponse,
+} from '@/interfaces/base_respone.interface';
 
 export const DiscountEndpoint = {
   getAll() {
@@ -25,14 +29,14 @@ export const DiscountEndpoint = {
   },
 
   create(data: DiscountRequest) {
-    return POST('/discounts', data);
+    return POST<null>('/discounts', data) as Promise<APIResponse<null>>;
   },
 
   update(id: string, data: DiscountUpdateRequest) {
-    return PATCH(`/discounts/${id}`, data);
+    return PATCH<null>(`/discounts/${id}`, data) as Promise<APIResponse<null>>;
   },
 
   delete(id: string) {
-    return DELETE(`/discounts/${id}`);
+    return DELETE<null>(`/discounts/${id}`) as Promise<APIResponse<null>>;
   },
 };

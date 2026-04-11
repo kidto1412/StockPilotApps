@@ -2,8 +2,11 @@ import React from 'react';
 import { ScrollView, View, Pressable, Text } from 'react-native';
 import Avatar from '@/components/Avatar';
 import Screen from '@/components/Screen';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 export default function SettingPage() {
+  const { logout } = useAuth();
+
   const menuItems = [
     { label: 'Ubah Akun', icon: '👤' },
     { label: 'Riwayat Transaksi', icon: '📄' },
@@ -51,7 +54,10 @@ export default function SettingPage() {
           ))}
         </View>
         {/* Logout Button */}
-        <Pressable className="mx-4 mt-5 bg-white border border-gray-200 rounded-xl py-4 px-4 flex-row items-center justify-between">
+        <Pressable
+          onPress={logout}
+          className="mx-4 mt-5 bg-white border border-gray-200 rounded-xl py-4 px-4 flex-row items-center justify-between active:bg-gray-50"
+        >
           <View className="flex-row items-center space-x-4">
             <Text className="text-lg">🚪</Text>
             <Text className="text-base text-red-500 font-semibold">Keluar</Text>

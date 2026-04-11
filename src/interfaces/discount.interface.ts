@@ -31,3 +31,10 @@ export interface DiscountRequest {
 }
 
 export type DiscountUpdateRequest = Partial<DiscountRequest>;
+
+// Operation Response Types
+export interface DiscountOperationResponse {
+  status: boolean;
+  message: 'CREATED' | 'UPDATED' | 'DELETED' | string;
+  data: null;
+}

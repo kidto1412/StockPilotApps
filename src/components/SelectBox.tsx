@@ -41,7 +41,7 @@ export default function SelectBox({
           onOpen?.();
         }}
       >
-        <Text className={`${selectedValue ? 'text-black' : 'text-gray-400'}`}>
+        <Text className={`${selectedValue ? 'text-white' : 'text-gray-400'}`}>
           {selectedLabel}
         </Text>
 

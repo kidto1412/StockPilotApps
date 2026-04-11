@@ -60,6 +60,52 @@ const CheckoutScreen = () => {
     ? Math.max(0, subTotal - Number(discount || 0))
     : subTotal;
 
+  const goToSalesPage = () => {
+    const parentNav = navigation?.getParent?.();
+    const ownRouteNames = navigation?.getState?.()?.routeNames ?? [];
+    const parentRouteNames = parentNav?.getState?.()?.routeNames ?? [];
+
+    if (ownRouteNames.includes('Sales')) {
+      navigation.navigate('Sales');
+      return;
+    }
+
+    if (parentNav && parentRouteNames.includes('Sales')) {
+      parentNav.navigate('Sales');
+      return;
+    }
+
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate('Home');
+  };
+
+  const goToPurchasePage = () => {
+    const parentNav = navigation?.getParent?.();
+    const ownRouteNames = navigation?.getState?.()?.routeNames ?? [];
+    const parentRouteNames = parentNav?.getState?.()?.routeNames ?? [];
+
+    if (ownRouteNames.includes('Pembelian')) {
+      navigation.navigate('Pembelian', { source: 'purchase' });
+      return;
+    }
+
+    if (parentNav && parentRouteNames.includes('Pembelian')) {
+      parentNav.navigate('Pembelian', { source: 'purchase' });
+      return;
+    }
+
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate('Home');
+  };
+
   const increaseItemQty = (productId: string) => {
     if (isSalesMode) {
       const success = salesCart.increaseQty(productId);
@@ -117,7 +163,7 @@ const CheckoutScreen = () => {
       const subscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
-          navigation.navigate('Sales');
+          goToSalesPage();
           return true;
         },
       );
@@ -268,10 +314,10 @@ const CheckoutScreen = () => {
           className="w-9 h-9 rounded-full bg-[#1f2a24] items-center justify-center"
           onPress={() => {
             if (isPurchaseMode) {
-              navigation.navigate('Pembelian', { source: 'purchase' });
+              goToPurchasePage();
               return;
             }
-            navigation.navigate('Sales');
+            goToSalesPage();
           }}
         >
           <ChevronLeft size={20} color="#fff" />

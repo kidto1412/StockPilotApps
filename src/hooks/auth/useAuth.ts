@@ -96,5 +96,29 @@ export function useAuth() {
     }
   };
 
-  return { login, checkToken, register };
+  const logout = async () => {
+    try {
+      showLoading();
+
+      await AuthEndpoint.logout();
+
+      // Clear auth state
+      useAuthStore.getState().logout();
+      // Clear user state
+      useUserState.getState().resetProfile();
+
+      showToast('Logout berhasil 👋', 'success');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Auth' }],
+      });
+    } catch (err) {
+      const message = getErrorMessage(err);
+      showToast(message, 'error');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  return { login, checkToken, register, logout };
 }

@@ -5,6 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
@@ -53,6 +54,7 @@ export default function ProductPage() {
         : 'product');
   const isStockMenu = source === 'stock';
   const isPurchaseMenu = source === 'purchase';
+  const insets = useSafeAreaInsets();
   const { getProductPagination, deleteProduct } = useProduct();
   const { showToast } = useToastMessage();
   const { addItem, items } = usePurchaseCartStore();
@@ -226,7 +228,10 @@ export default function ProductPage() {
       )}
 
       {isPurchaseMenu ? (
-        <View className="absolute bottom-4 left-4 right-4 flex-row">
+        <View
+          className="absolute left-4 right-4 flex-row"
+          style={{ bottom: 16 + insets.bottom }}
+        >
           <TouchableOpacity
             className="flex-1 bg-[#24382d] rounded-2xl px-4 py-4 items-center justify-center mr-2"
             onPress={() => navigation.navigate('FormProduct')}
