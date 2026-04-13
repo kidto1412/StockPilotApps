@@ -10,6 +10,7 @@ import { MainStackParamList } from '@/types/navigation.type';
 import CategoryPage from '@/screens/category/Category';
 import CategoryForm from '@/screens/category/Form';
 import SalesPage from '@/screens/sales/Sales';
+import SalesReportPage from '@/screens/report/SalesReport';
 import DisscountPage from '@/screens/disccount/Disscount';
 import CheckoutScreen from '@/screens/sales/Checkout';
 import FormDisscount from '@/screens/disccount/Form';
@@ -47,6 +48,7 @@ export default function MainNavigator() {
       <Stack.Screen name="FormEmployee" component={EmployeeFormPage} />
       <Stack.Screen name="Customer" component={CustomerPage} />
       <Stack.Screen name="Sales" component={SalesPage} />
+      <Stack.Screen name="SalesReport" component={SalesReportPage} />
       <Stack.Screen name="Discount" component={DisscountPage} />
       <Stack.Screen name="FormDiscount" component={FormDisscount} />
       <Stack.Screen

@@ -30,6 +30,7 @@ export type MainStackParamList = {
   Employe: undefined;
   Customer: undefined;
   Report: undefined;
+  SalesReport: undefined;
   Category: undefined;
   Store: undefined;
   FormEmployee: undefined;

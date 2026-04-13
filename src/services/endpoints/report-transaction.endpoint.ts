@@ -16,7 +16,7 @@ export const ReportTransactionEndpoint = {
   exportReport: async (params: ExportReportTransactionParams) => {
     return api.get('/report-transaction/export', {
       params,
-      responseType: 'arraybuffer',
+      responseType: 'blob',
     });
   },
 };

@@ -7,5 +7,5 @@ export interface DashboardSummaryResponse {
   totalProducts: number;
   totalCategories: number;
   totalSold: number;
-  totalProfit: number;
+  totalSalesAmount: number;
 }

@@ -18,7 +18,7 @@ export interface ReportTransactionItem {
 
 export interface ExportReportTransactionParams {
   groupBy: 'DAILY' | 'MONTHLY';
-  format: 'EXCEL' | 'PDF';
+  format: 'EXCEL' | 'XLSX' | 'PDF';
   startDate: string;
   endDate: string;
 }

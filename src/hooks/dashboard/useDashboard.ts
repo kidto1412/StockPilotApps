@@ -17,6 +17,7 @@ export function useDashboard() {
     try {
       setIsLoading(true);
       const res = await DashboardEndpoint.getSummary(params);
+      console.log(res);
       return res.data;
     } catch (err) {
       showToast(getErrorMessage(err), 'error');

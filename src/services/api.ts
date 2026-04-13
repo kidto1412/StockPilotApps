@@ -1,5 +1,7 @@
 // src/api/client.ts
+import { resetToAuth } from '@/navigations/navigationRef';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUserState } from '@/stores/user.store';
 import axios, { InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '@env';
 
@@ -32,7 +34,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const { logout } = useAuthStore.getState();
 
-      logout();
+      await logout();
+      await useUserState.getState().reset();
+      await useUserState.getState().resetProfile();
+      resetToAuth();
     }
 
     return Promise.reject({ status, message, originalError: error });

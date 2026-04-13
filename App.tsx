@@ -25,7 +25,7 @@ import { RootNavigator } from '@/navigations/RootNavigator';
 import { LoadingProvider } from '@/providers/loading.provider';
 import { API_URL } from '@env';
 import { ToastProvider } from '@/providers/toast.provider';
-import MyDrawer from '@/navigations/Drawer';
+import { navigationRef } from '@/navigations/navigationRef';
 
 console.log('ENV CHECK:', API_URL);
 
@@ -35,7 +35,7 @@ function App() {
       <SafeAreaProvider>
         <LoadingProvider>
           <ToastProvider>
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
               <RootNavigator />
             </NavigationContainer>
           </ToastProvider>

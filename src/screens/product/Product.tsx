@@ -12,6 +12,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -38,10 +39,14 @@ import { formatRupiah } from '@/utils/formatRupiah';
 import { useToastMessage } from '@/providers/toast.provider';
 import { getImageUrl } from '@/utils/getImage.util';
 import { usePurchaseCartStore } from '@/stores/purchase-cart.store';
+import { useCategory } from '@/hooks/category/useCategory';
+import { CategoryResponse } from '@/interfaces/category.interface';
 
 export default function ProductPage() {
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
   const navigation = useNavigation<any>();
   const route =
     useRoute<RouteProp<DrawerParamList, 'Product' | 'Stock' | 'Pembelian'>>();
@@ -56,6 +61,7 @@ export default function ProductPage() {
   const isPurchaseMenu = source === 'purchase';
   const insets = useSafeAreaInsets();
   const { getProductPagination, deleteProduct } = useProduct();
+  const { getAll: getAllCategory } = useCategory();
   const { showToast } = useToastMessage();
   const { addItem, items } = usePurchaseCartStore();
   const totalCartItems = items.reduce((sum, item) => sum + item.qty, 0);
@@ -64,48 +70,15 @@ export default function ProductPage() {
   const [showStockActionDialog, setShowStockActionDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResponse | null>(null);
-  const productsDummy = [
-    {
-      id: '1',
-      name: 'Espresso Roast Beans 1kg',
-      sku: '883492',
-      stock: '12 in stock',
-      price: '$24.50',
-      status: 'in',
-    },
-    {
-      id: '2',
-      name: 'Arabica Premium 500g',
-      sku: '883561',
-      stock: '45 in stock',
-      price: '$18.00',
-      status: 'in',
-    },
-    {
-      id: '3',
-      name: 'Oat Milk 1L',
-      sku: '102938',
-      stock: '2 Left',
-      price: '$4.20',
-      status: 'low',
-    },
-    {
-      id: '4',
-      name: 'Ceremonial Matcha 50g',
-      sku: '339218',
-      stock: '28 in stock',
-      price: '$32.00',
-      status: 'in',
-    },
-    {
-      id: '5',
-      name: 'Butter Croissant',
-      sku: '550812',
-      stock: 'Out of stock',
-      price: '$3.50',
-      status: 'out',
-    },
-  ];
+  const filteredProducts = products.filter(product => {
+    const matchesCategory =
+      selectedCategoryId === 'ALL' || product.categoryId === selectedCategoryId;
+    const matchesSearch = product.name
+      ?.toLowerCase()
+      .includes(search.trim().toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
 
   const loadProducts = async (pageNumber: number) => {
     const data = await getProductPagination({ page: pageNumber, size: 10 });
@@ -128,8 +101,15 @@ export default function ProductPage() {
     if (hasNextPage) loadProducts(page + 1);
   };
 
+  const loadCategories = async () => {
+    const data = await getAllCategory();
+    if (!data) return;
+    setCategories(data);
+  };
+
   useFocusEffect(
     useCallback(() => {
+      loadCategories();
       loadProducts(1);
     }, []),
   );
@@ -190,9 +170,66 @@ export default function ProductPage() {
         />
       </View>
 
+      <View className="px-5 mb-3">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingRight: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Pressable
+            onPress={() => setSelectedCategoryId('ALL')}
+            className={`mr-2 px-4 h-10 rounded-xl border items-center justify-center ${
+              selectedCategoryId === 'ALL'
+                ? 'bg-green-600 border-green-500'
+                : 'bg-[#1d1d1d] border-gray-700'
+            }`}
+            style={{ maxWidth: 140, minWidth: 88 }}
+          >
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              className={`font-medium text-center ${
+                selectedCategoryId === 'ALL' ? 'text-white' : 'text-gray-100'
+              }`}
+            >
+              Semua
+            </Text>
+          </Pressable>
+
+          {categories.map(category => {
+            const isActive = selectedCategoryId === category.id;
+            return (
+              <Pressable
+                key={category.id}
+                onPress={() => setSelectedCategoryId(category.id)}
+                className={`mr-2 px-4 h-10 rounded-xl border items-center justify-center ${
+                  isActive
+                    ? 'bg-green-600 border-green-500'
+                    : 'bg-[#1d1d1d] border-gray-700'
+                }`}
+                style={{ maxWidth: 160, minWidth: 92 }}
+              >
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  className={`font-medium text-center ${
+                    isActive ? 'text-white' : 'text-gray-100'
+                  }`}
+                >
+                  {category.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {/* Filter Scroll */}
       {/* <FilterScroll /> */}
-      {products.length == 0 ? (
+      {filteredProducts.length == 0 ? (
         <Text className="text-center text-gray-500 mt-5">
           {isStockMenu
             ? 'Tidak ada stok produk'
@@ -202,7 +239,7 @@ export default function ProductPage() {
         </Text>
       ) : (
         <FlatList
-          data={products}
+          data={filteredProducts}
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{

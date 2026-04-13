@@ -3,6 +3,7 @@ import { RegisterRequest } from '@/interfaces/auth.interface';
 import { useLoading } from '@/providers/loading.provider';
 import { useToastMessage } from '@/providers/toast.provider';
 import { AuthEndpoint } from '@/services/endpoints/auth.endpoint';
+import { resetToAuth } from '@/navigations/navigationRef';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUserState } from '@/stores/user.store';
 import { RootStackParamList } from '@/types/navigation.type';
@@ -114,13 +115,11 @@ export function useAuth() {
       // Clear auth state
       useAuthStore.getState().logout();
       // Clear user state
+      useUserState.getState().reset();
       useUserState.getState().resetProfile();
 
       showToast('Logout berhasil 👋', 'success');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+      resetToAuth();
     } catch (err) {
       const message = getErrorMessage(err);
       showToast(message, 'error');

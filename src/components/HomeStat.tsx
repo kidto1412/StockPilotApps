@@ -80,7 +80,7 @@ export default function HomeStats() {
         value={
           isLoading
             ? 'Loading...'
-            : `Rp ${formatRupiah(summary?.totalProfit ?? 0) || '0'}`
+            : `Rp ${formatRupiah(summary?.totalSalesAmount ?? 0) || '0'}`
         }
         subtitle="Total Profit"
         icon={Wallet}

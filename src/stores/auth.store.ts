@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>()(
       getToken: () => get().token,
 
       logout: async () => {
-        set({ token: null });
+        set({ token: null, userId: null });
       },
     }),
     'auth-token',

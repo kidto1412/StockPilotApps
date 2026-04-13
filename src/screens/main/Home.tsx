@@ -73,7 +73,7 @@ export default function HomePage() {
          
         <View className="mt-5">
           <HomeStats />
-          <QuickAction onPress={() => console.log('NEW SALE')} />
+          <QuickAction onPress={() => navigation.navigate('Sales')} />
           <Menu />
         </View>
       </ScrollView>

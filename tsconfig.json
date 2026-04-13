@@ -3,6 +3,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     "nativewind-env.d.ts"
   ],
   "exclude": [
@@ -11,6 +12,7 @@
   ],
   "compilerOptions": {
     "baseUrl": "./src",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["*"]
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Screen from '../../components/Screen';
 import Input from '@/components/Input';
@@ -7,6 +7,7 @@ import { useReportTransaction } from '@/hooks/report/useReportTransaction';
 import { ReportTransactionItem } from '@/interfaces/report-transaction.interface';
 import { formatRupiah } from '@/utils/formatRupiah';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -34,6 +35,7 @@ const statusOptions = [
 
 const ReportPage = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const { getReportTransaction, exportReportTransaction } =
     useReportTransaction();
   const [items, setItems] = useState<ReportTransactionItem[]>([]);
@@ -73,9 +75,11 @@ const ReportPage = () => {
     setHasNextPage(Boolean(data.hasNextPage));
   };
 
-  useEffect(() => {
-    fetchReport(1, true);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReport(1, true);
+    }, []),
+  );
 
   const handleApplyFilter = () => {
     fetchReport(1, true);
@@ -169,6 +173,15 @@ const ReportPage = () => {
           </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          className="bg-[#24382d] rounded-lg py-3 mb-4"
+          onPress={() => navigation.navigate('SalesReport')}
+        >
+          <Text className="text-center text-white font-semibold">
+            Lihat List Penjualan
+          </Text>
+        </TouchableOpacity>
+
         {items.length === 0 ? (
           <Text className="text-center text-gray-400 mt-8">
             Belum ada data report transaction
@@ -176,18 +189,40 @@ const ReportPage = () => {
         ) : (
           <>
             {items.map(item => (
-              <View key={item.id} className="bg-[#1f2a24] rounded-xl p-4 mb-3">
+              <View
+                key={item.id || (item as any).productId}
+                className="bg-[#1f2a24] rounded-xl p-4 mb-3"
+              >
                 <Text className="text-white font-semibold">
-                  {item.invoiceNumber || item.id}
+                  {item.invoiceNumber ||
+                    (item as any).productName ||
+                    item.id ||
+                    (item as any).productId ||
+                    '-'}
                 </Text>
                 <Text className="text-gray-400 text-xs mt-1">
-                  {item.paymentMethod} • {item.status}
+                  {(item.paymentMethod || (item as any).categoryName || '-') +
+                    ' • ' +
+                    (item.status || '-')}
                 </Text>
+                <View className="flex-row mt-2">
+                  <Text className="text-gray-300 text-xs mr-4">
+                    Qty Beli: {(item as any).boughtQuantity ?? '-'}
+                  </Text>
+                  <Text className="text-gray-300 text-xs">
+                    Qty Jual:{' '}
+                    {(item as any).soldQuantity ??
+                      (item as any).totalQuantity ??
+                      '-'}
+                  </Text>
+                </View>
                 <Text className="text-green-400 font-bold mt-2">
-                  {formatRupiah(item.totalAmount ?? 0)}
+                  {formatRupiah(
+                    item.totalAmount ?? (item as any).soldTotal ?? 0,
+                  )}
                 </Text>
                 <Text className="text-gray-500 text-xs mt-1">
-                  {item.createdAt || '-'}
+                  {item.createdAt || (item as any).barcode || '-'}
                 </Text>
               </View>
             ))}
