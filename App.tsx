@@ -7,61 +7,22 @@
 
 import './global.css';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { StatusBar } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { RootNavigator } from '@/navigations/RootNavigator';
-import { LoadingProvider } from '@/providers/loading.provider';
-import { API_URL } from '@env';
-import { ToastProvider } from '@/providers/toast.provider';
-import { navigationRef } from '@/navigations/navigationRef';
-
-console.log('ENV CHECK:', API_URL);
+import { StockAnalyzerScreen } from '@/screens/main/StockAnalyzerScreen';
 
 function App() {
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <LoadingProvider>
-          <ToastProvider>
-            <NavigationContainer ref={navigationRef}>
-              <RootNavigator />
-            </NavigationContainer>
-          </ToastProvider>
-        </LoadingProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#051215" />
+        <SafeAreaView style={{ flex: 1 }} edges={['top', 'right', 'left']}>
+          <StockAnalyzerScreen />
+        </SafeAreaView>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
