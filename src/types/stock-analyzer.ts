@@ -2,6 +2,10 @@ export type TradingStyle = 'day' | 'swing' | 'scalping';
 
 export type RecommendationAction = 'BUY' | 'WATCH' | 'AVOID';
 
+export type LiquiditySweepStatus = 'BULLISH' | 'BEARISH' | 'NONE';
+
+export type MarketBias = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+
 export interface IndicatorSet {
   rsi: number;
   macdHistogram: number;
@@ -61,4 +65,89 @@ export interface StockRecommendation {
   strategy: StrategyPlan;
   tradingViewSymbol: string;
   activeIndicators: string[];
+}
+
+// === API Response Types ===
+export interface ApiMarketData {
+  symbol: string;
+  closePrice: number;
+  livePrice?: number;
+  isRealTime?: boolean;
+  lastUpdatedAt?: string;
+  indicators: {
+    rsi: number;
+    macdHistogram: number;
+    volumeRatio: number;
+    ema20: number;
+    ema50: number;
+  };
+  candles?: Array<{
+    timestamp: number | string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume?: number;
+  }>;
+  source: {
+    provider: string;
+    range: string;
+    interval: string;
+  };
+  recommendation?: ApiRecommendation;
+  marketBias?: MarketBias;
+  strategies?: ApiRecommendation['strategies'];
+  tradingView?: ApiRecommendation['tradingView'];
+  scoring?: ApiRecommendation['scoring'];
+}
+
+export interface ApiStrategy {
+  style: string;
+  recommendation: 'BUY' | 'SELL' | 'HOLD' | 'WATCH';
+  entry: number;
+  takeProfit: number;
+  trailingStop: number;
+  stopLoss: number;
+  cutLoss: number;
+  note: string;
+}
+
+export interface ApiScoring {
+  longScore: number;
+  shortScore: number;
+  confidence: 'LOW' | 'MEDIUM' | 'HIGH';
+  mlProbabilityBuy: number;
+  mlSignal: 'BUY' | 'SELL';
+  mlNote: string;
+}
+
+export interface ApiRecommendation {
+  symbol: string;
+  generatedAt: string;
+  methodology: string[];
+  marketBias: MarketBias;
+  scoring: ApiScoring;
+  brokerSummary: {
+    foreignFlowBillion: number;
+    top3BrokerNetBuyBillion: number;
+    interpretation: string;
+  };
+  strategies: {
+    dayTrading: ApiStrategy;
+    swingTrading: ApiStrategy;
+    scalping: ApiStrategy;
+  };
+  tradingView: {
+    symbol: string;
+    defaultInterval: string;
+    exchange: string;
+    indicators: string[];
+    chartUrl: string;
+  };
+  disclaimer: string;
+}
+
+export interface ApiAutoRecommendation {
+  marketData: ApiMarketData;
+  recommendation: ApiRecommendation;
 }

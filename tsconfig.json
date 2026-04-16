@@ -12,6 +12,7 @@
   ],
   "compilerOptions": {
     "baseUrl": "./src",
+    "jsx": "react-native",
     "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["*"]

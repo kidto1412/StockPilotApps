@@ -5,7 +5,7 @@ import { useUserState } from '@/stores/user.store';
 import axios, { InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '@env';
 
-const apiUrl = API_URL;
+const apiUrl = (API_URL || '').trim();
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -15,8 +15,6 @@ const api = axios.create({
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = useAuthStore.getState().token;
-  console.log(apiUrl);
-  console.log(token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
