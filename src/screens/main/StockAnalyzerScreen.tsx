@@ -22,13 +22,12 @@ import {
 import {
   stockAnalyzerApi,
   type ChartCandle,
+  type ChartRecommendationSummary,
+  type ChartSupportResistance,
   type MarketEventItem,
   type MarketDataResponse,
-  type MarketRecommendationItem,
   type MarketSyncStatus,
-  type RecommendationMode,
   type RecommendationResponse,
-  type RecommendationStyle,
   type RecommendationStreamEvent,
   type TechnicalSnapshot,
 } from '@/services/stockAnalyzerApi';
@@ -92,20 +91,28 @@ const formatIDR = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatPercent = (value?: number) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return '-';
+  }
+
+  return `${(value * 100).toFixed(1)}%`;
+};
+
+const formatLevelList = (values?: number[]) => {
+  if (!values?.length) {
+    return '-';
+  }
+
+  return values
+    .slice(0, 4)
+    .map(value => Number(value).toFixed(2))
+    .join(', ');
+};
+
 const DEFAULT_CHART_RANGE = '6mo';
 
 const STREAM_DEFAULT_INTERVAL_MS = 5000;
-
-const HOME_STYLE_OPTIONS: RecommendationStyle[] = [
-  'DAILY',
-  'SWING',
-  'SCALPING',
-];
-const HOME_MODE_OPTIONS: RecommendationMode[] = [
-  'COMBINED',
-  'MACD_STOCH',
-  'LIQUIDITY_SWEEP',
-];
 
 const formatDateTime = (value?: string) => {
   if (!value) {
@@ -150,74 +157,31 @@ const mapRecommendationTimeframeToInterval = (timeframe?: string) => {
     return '60m';
   }
 
-  if (timeframe.toUpperCase().includes('1D')) {
+  const normalized = timeframe.toUpperCase();
+
+  if (normalized.includes('1W') || normalized.includes('WEEK')) {
+    return '1w';
+  }
+
+  if (normalized.includes('4H')) {
+    return '4h';
+  }
+
+  if (normalized.includes('1D') || normalized.includes('DAILY')) {
     return '1d';
   }
 
   return '60m';
 };
 
-const mapHomeStyleToInterval = (style: RecommendationStyle) => {
-  if (style === 'DAILY') {
-    return '1d';
+const mapTradingStyleToChartStyle = (
+  style: TradingStyle,
+): 'daily' | 'swing' | 'scalping' => {
+  if (style === 'day') {
+    return 'daily';
   }
 
-  if (style === 'SCALPING') {
-    return '15m';
-  }
-
-  return '4h';
-};
-
-const normalizeSymbol = (symbol: string) =>
-  symbol.replace('IDX:', '').replace('.JK', '').trim().toUpperCase();
-
-const parseHomeRecommendationCandles = (
-  item: MarketRecommendationItem,
-): ChartCandle[] => {
-  if (!Array.isArray(item.candles)) {
-    return [];
-  }
-
-  const parsed = item.candles
-    .map(candle => {
-      const timestampValue =
-        candle.timestamp ?? candle.time ?? candle.date ?? Date.now();
-
-      const timestamp =
-        typeof timestampValue === 'number'
-          ? timestampValue
-          : Date.parse(String(timestampValue));
-
-      const open = Number(candle.open ?? candle.o);
-      const high = Number(candle.high ?? candle.h);
-      const low = Number(candle.low ?? candle.l);
-      const close = Number(candle.close ?? candle.c);
-      const volume = Number(candle.volume ?? candle.v ?? 0);
-
-      if (
-        !Number.isFinite(timestamp) ||
-        !Number.isFinite(open) ||
-        !Number.isFinite(high) ||
-        !Number.isFinite(low) ||
-        !Number.isFinite(close)
-      ) {
-        return null;
-      }
-
-      return {
-        timestamp,
-        open,
-        high,
-        low,
-        close,
-        volume: Number.isFinite(volume) ? volume : 0,
-      };
-    })
-    .filter((candle): candle is ChartCandle => Boolean(candle))
-    .sort((a, b) => a.timestamp - b.timestamp);
-
-  return parsed;
+  return style;
 };
 
 export const StockAnalyzerScreen = () => {
@@ -228,6 +192,14 @@ export const StockAnalyzerScreen = () => {
   const [chartData, setChartData] = useState<ChartCandle[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState('');
+  const [chartSourceMeta, setChartSourceMeta] = useState('');
+  const [chartSupportResistance, setChartSupportResistance] =
+    useState<ChartSupportResistance | null>(null);
+  const [chartRecommendation, setChartRecommendation] =
+    useState<ChartRecommendationSummary | null>(null);
+  const [chartModalStyle, setChartModalStyle] = useState<
+    'daily' | 'swing' | 'scalping'
+  >('daily');
 
   // Quick scan state
   const [quickSymbol, setQuickSymbol] = useState('BBCA');
@@ -283,22 +255,6 @@ export const StockAnalyzerScreen = () => {
   const [technicalData, setTechnicalData] = useState<TechnicalSnapshot[]>([]);
   const [eventData, setEventData] = useState<MarketEventItem[]>([]);
   const [syncStatusData, setSyncStatusData] = useState<MarketSyncStatus[]>([]);
-
-  // Home recommendation list state
-  const [homeRecStyle, setHomeRecStyle] =
-    useState<RecommendationStyle>('SWING');
-  const [homeRecMode, setHomeRecMode] =
-    useState<RecommendationMode>('COMBINED');
-  const [homeRecSource, setHomeRecSource] = useState('TRADINGVIEW');
-  const [homeRecLimit, setHomeRecLimit] = useState('30');
-  const [homeStochSetting, setHomeStochSetting] = useState('');
-  const [homeStochBuyThreshold, setHomeStochBuyThreshold] = useState('');
-  const [homeMinVolumeRatio, setHomeMinVolumeRatio] = useState('');
-  const [homeRecLoading, setHomeRecLoading] = useState(false);
-  const [homeRecError, setHomeRecError] = useState('');
-  const [homeRecommendations, setHomeRecommendations] = useState<
-    MarketRecommendationItem[]
-  >([]);
 
   const handleQuickScan = useCallback(async () => {
     if (!quickSymbol.trim()) {
@@ -550,77 +506,12 @@ export const StockAnalyzerScreen = () => {
     intelTo,
   ]);
 
-  const loadHomeRecommendations = useCallback(async () => {
-    setHomeRecLoading(true);
-    setHomeRecError('');
-
-    try {
-      const parsedLimit = Math.max(
-        1,
-        Math.min(100, parseInt(homeRecLimit, 10) || 30),
-      );
-      const parsedStochBuyThreshold =
-        homeStochBuyThreshold.trim() === ''
-          ? undefined
-          : parseFloat(homeStochBuyThreshold);
-      const parsedMinVolumeRatio =
-        homeMinVolumeRatio.trim() === ''
-          ? undefined
-          : parseFloat(homeMinVolumeRatio);
-
-      const response = await stockAnalyzerApi.getMarketRecommendations({
-        style: homeRecStyle,
-        mode: homeRecMode,
-        source: homeRecSource.trim() || 'TRADINGVIEW',
-        limit: parsedLimit,
-        stochSetting: homeStochSetting.trim() || undefined,
-        stochBuyThreshold:
-          typeof parsedStochBuyThreshold === 'number' &&
-          Number.isFinite(parsedStochBuyThreshold)
-            ? parsedStochBuyThreshold
-            : undefined,
-        minVolumeRatio:
-          typeof parsedMinVolumeRatio === 'number' &&
-          Number.isFinite(parsedMinVolumeRatio)
-            ? parsedMinVolumeRatio
-            : undefined,
-      });
-
-      setHomeRecommendations(response);
-
-      if (!response.length) {
-        setHomeRecError('Belum ada saham yang lolos rule untuk filter ini.');
-      }
-    } catch (error) {
-      setHomeRecommendations([]);
-      setHomeRecError(
-        error instanceof Error
-          ? error.message
-          : 'Gagal memuat list rekomendasi home.',
-      );
-    } finally {
-      setHomeRecLoading(false);
-    }
-  }, [
-    homeMinVolumeRatio,
-    homeRecLimit,
-    homeRecMode,
-    homeRecSource,
-    homeRecStyle,
-    homeStochBuyThreshold,
-    homeStochSetting,
-  ]);
-
   useEffect(() => {
     return () => {
       streamRef.current?.close();
       streamRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    loadHomeRecommendations();
-  }, [loadHomeRecommendations]);
 
   // Get recommendations based on current data
   const recommendations = useMemo(() => {
@@ -644,29 +535,114 @@ export const StockAnalyzerScreen = () => {
   );
 
   const loadNativeChart = useCallback(
-    async (symbol: string, interval: string) => {
+    async (
+      symbol: string,
+      interval: string,
+      style?: 'daily' | 'swing' | 'scalping',
+    ) => {
       setChartLoading(true);
       setChartError('');
+      setChartSourceMeta('');
+      setChartSupportResistance(null);
+      setChartRecommendation(null);
 
       try {
         const response = await stockAnalyzerApi.getChartData(symbol, {
           interval,
           range: DEFAULT_CHART_RANGE,
           limit: 280,
+          ...(style ? { style } : {}),
         });
 
+        const loadDiagnostics = {
+          symbol,
+          requestedInterval: interval,
+          requestedStyle: style ?? null,
+          resolvedInterval: response.interval,
+          resolvedRange: response.range,
+          candleCount: response.candles.length,
+          supportCount: response.supportResistance?.supports?.length ?? 0,
+          resistanceCount: response.supportResistance?.resistances?.length ?? 0,
+          nearestSupport: response.supportResistance?.nearestSupport ?? null,
+          nearestResistance:
+            response.supportResistance?.nearestResistance ?? null,
+          recommendationSignal: response.recommendation?.signal ?? null,
+          recommendationStyle: response.recommendation?.selectedStyle ?? null,
+        };
+        console.log(
+          '[chart-modal-load-state]',
+          JSON.stringify(loadDiagnostics),
+        );
+
+        if (
+          !response.supportResistance?.supports?.length &&
+          !response.supportResistance?.resistances?.length
+        ) {
+          console.warn(
+            '[chart-modal-missing-sr]',
+            JSON.stringify({
+              symbol,
+              interval,
+              style: style ?? null,
+              reason: 'No support/resistance levels received by screen layer',
+            }),
+          );
+        }
+
+        if (!response.recommendation) {
+          console.warn(
+            '[chart-modal-missing-recommendation]',
+            JSON.stringify({
+              symbol,
+              interval,
+              style: style ?? null,
+              reason: 'No recommendation object received by screen layer',
+            }),
+          );
+        }
+
         setChartData(response.candles);
+        setChartSupportResistance(response.supportResistance ?? null);
+        setChartRecommendation(response.recommendation ?? null);
+        const supportCount = response.supportResistance?.supports?.length ?? 0;
+        const resistanceCount =
+          response.supportResistance?.resistances?.length ?? 0;
+        const sourceSegments = [
+          response.candleSource ? `source ${response.candleSource}` : '',
+          response.interval ? `interval ${response.interval}` : '',
+          response.range ? `range ${response.range}` : '',
+          response.candles.length > 0
+            ? `candles ${response.candles.length}`
+            : '',
+          `SR S${supportCount}/R${resistanceCount}`,
+          response.recommendation?.signal
+            ? `rec ${response.recommendation.signal}`
+            : 'rec -',
+        ].filter(Boolean);
+        setChartSourceMeta(sourceSegments.join(' • '));
 
         if (!response.candles.length) {
           setChartError(
-            'Data candle belum tersedia dari backend scraping untuk simbol ini.',
+            'Data candle belum tersedia di database chart backend.',
           );
         }
       } catch (err: any) {
+        console.error(
+          '[chart-modal-load-error]',
+          JSON.stringify({
+            symbol,
+            interval,
+            style: style ?? null,
+            message: err?.message || String(err),
+          }),
+        );
         setChartError(
           err?.message || 'Gagal mengambil chart data dari backend.',
         );
         setChartData([]);
+        setChartSourceMeta('');
+        setChartSupportResistance(null);
+        setChartRecommendation(null);
         console.error('Load native chart error:', err);
       } finally {
         setChartLoading(false);
@@ -681,12 +657,13 @@ export const StockAnalyzerScreen = () => {
       const nextInterval = mapRecommendationTimeframeToInterval(
         recommendation?.strategy.timeframe,
       );
+      const nextStyle = mapTradingStyleToChartStyle(selectedStyle);
 
       setChartSymbol(`IDX:${symbol.toUpperCase()}`);
       setChartInterval(nextInterval);
-      await loadNativeChart(symbol, nextInterval);
+      await loadNativeChart(symbol, nextInterval, nextStyle);
     },
-    [loadNativeChart, selectedRecommendation],
+    [loadNativeChart, selectedRecommendation, selectedStyle],
   );
 
   const handleChangeChartInterval = useCallback(
@@ -697,35 +674,22 @@ export const StockAnalyzerScreen = () => {
 
       setChartInterval(nextInterval);
       const normalized = chartSymbol.replace('IDX:', '');
-      await loadNativeChart(normalized, nextInterval);
+      await loadNativeChart(normalized, nextInterval, chartModalStyle);
     },
-    [chartSymbol, loadNativeChart],
+    [chartSymbol, chartModalStyle, loadNativeChart],
   );
 
-  const handleOpenHomeRecommendationChart = useCallback(
-    async (item: MarketRecommendationItem) => {
-      const symbol = normalizeSymbol(item.symbol || '');
-
-      if (!symbol) {
+  const handleChangeChartModalStyle = useCallback(
+    async (nextStyle: 'daily' | 'swing' | 'scalping') => {
+      if (!chartSymbol) {
         return;
       }
 
-      const nextInterval = mapHomeStyleToInterval(homeRecStyle);
-      const localCandles = parseHomeRecommendationCandles(item);
-
-      setChartSymbol(`IDX:${symbol}`);
-      setChartInterval(nextInterval);
-      setChartError('');
-
-      if (localCandles.length > 0) {
-        setChartData(localCandles);
-        setChartLoading(false);
-        return;
-      }
-
-      await loadNativeChart(symbol, nextInterval);
+      setChartModalStyle(nextStyle);
+      const normalized = chartSymbol.replace('IDX:', '');
+      await loadNativeChart(normalized, chartInterval, nextStyle);
     },
-    [homeRecStyle, loadNativeChart],
+    [chartSymbol, chartInterval, loadNativeChart],
   );
 
   return (
@@ -736,153 +700,6 @@ export const StockAnalyzerScreen = () => {
         <Text style={styles.heroSubtitle}>
           Analisis real-time berbasis teknikal, liquidity sweep, dan ML.
         </Text>
-      </View>
-
-      <View style={styles.homeRecCard}>
-        <Text style={styles.homeRecTitle}>Home Recommendation List</Text>
-        <Text style={styles.homeRecSubtitle}>
-          Endpoint market/recommendations dengan default Swing + Combined.
-        </Text>
-
-        <Text style={styles.homeRecLabel}>Style</Text>
-        <View style={styles.homeRecFilterRow}>
-          {HOME_STYLE_OPTIONS.map(style => {
-            const active = homeRecStyle === style;
-            return (
-              <Pressable
-                key={style}
-                style={[styles.homeRecChip, active && styles.homeRecChipActive]}
-                onPress={() => setHomeRecStyle(style)}
-              >
-                <Text
-                  style={[
-                    styles.homeRecChipText,
-                    active && styles.homeRecChipTextActive,
-                  ]}
-                >
-                  {style}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={styles.homeRecLabel}>Mode</Text>
-        <View style={styles.homeRecFilterRow}>
-          {HOME_MODE_OPTIONS.map(mode => {
-            const active = homeRecMode === mode;
-            return (
-              <Pressable
-                key={mode}
-                style={[styles.homeRecChip, active && styles.homeRecChipActive]}
-                onPress={() => setHomeRecMode(mode)}
-              >
-                <Text
-                  style={[
-                    styles.homeRecChipText,
-                    active && styles.homeRecChipTextActive,
-                  ]}
-                >
-                  {mode}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Source (default TRADINGVIEW)"
-          placeholderTextColor="#8eb5c5"
-          value={homeRecSource}
-          onChangeText={setHomeRecSource}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Limit (default 30)"
-          placeholderTextColor="#8eb5c5"
-          keyboardType="number-pad"
-          value={homeRecLimit}
-          onChangeText={setHomeRecLimit}
-        />
-
-        <Text style={styles.homeRecAdvancedTitle}>
-          Advanced Override (Opsional)
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="stochSetting, contoh 10,5,5"
-          placeholderTextColor="#8eb5c5"
-          value={homeStochSetting}
-          onChangeText={setHomeStochSetting}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="stochBuyThreshold, contoh 78"
-          placeholderTextColor="#8eb5c5"
-          keyboardType="decimal-pad"
-          value={homeStochBuyThreshold}
-          onChangeText={setHomeStochBuyThreshold}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="minVolumeRatio, contoh 1.1"
-          placeholderTextColor="#8eb5c5"
-          keyboardType="decimal-pad"
-          value={homeMinVolumeRatio}
-          onChangeText={setHomeMinVolumeRatio}
-        />
-
-        <Pressable
-          style={[styles.button, homeRecLoading && styles.buttonDisabled]}
-          onPress={loadHomeRecommendations}
-          disabled={homeRecLoading}
-        >
-          {homeRecLoading ? (
-            <ActivityIndicator color="#faf5ff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>Refresh Home Recommendations</Text>
-          )}
-        </Pressable>
-
-        {homeRecError ? (
-          <Text style={styles.errorText}>{homeRecError}</Text>
-        ) : null}
-
-        <View style={styles.homeRecList}>
-          {homeRecommendations.slice(0, 10).map((item, index) => (
-            <Pressable
-              key={`${item.symbol}-${item.generatedAt || item.score || index}`}
-              style={styles.homeRecItem}
-              onPress={() => handleOpenHomeRecommendationChart(item)}
-            >
-              <View style={styles.homeRecItemHeader}>
-                <Text style={styles.homeRecSymbol}>{item.symbol}</Text>
-                <Text style={styles.homeRecAction}>{item.action || '-'}</Text>
-              </View>
-              <Text style={styles.homeRecMeta}>
-                Score:{' '}
-                {typeof item.score === 'number' ? item.score.toFixed(2) : '-'} |
-                Confidence: {item.confidence || '-'}
-              </Text>
-              <Text style={styles.homeRecMeta}>
-                Mode: {item.mode || homeRecMode} | Style:{' '}
-                {item.style || homeRecStyle}
-              </Text>
-              {item.latest ? (
-                <Text style={styles.homeRecMeta}>
-                  RSI: {Number(item.latest.rsi ?? 0).toFixed(2)} | MACD Hist:{' '}
-                  {Number(item.latest.macdHistogram ?? 0).toFixed(3)} | Stoch
-                  K/D: {Number(item.latest.stochasticK ?? 0).toFixed(2)}/
-                  {Number(item.latest.stochasticD ?? 0).toFixed(2)}
-                </Text>
-              ) : null}
-              {Array.isArray(item.reasons) && item.reasons.length > 0 ? (
-                <Text style={styles.homeRecReason}>• {item.reasons[0]}</Text>
-              ) : null}
-            </Pressable>
-          ))}
-        </View>
       </View>
 
       <View style={styles.modeTabs}>
@@ -1412,6 +1229,9 @@ export const StockAnalyzerScreen = () => {
         onRequestClose={() => {
           setChartSymbol(null);
           setChartError('');
+          setChartSourceMeta('');
+          setChartSupportResistance(null);
+          setChartRecommendation(null);
         }}
       >
         <View style={styles.webviewContainer}>
@@ -1422,34 +1242,138 @@ export const StockAnalyzerScreen = () => {
               onPress={() => {
                 setChartSymbol(null);
                 setChartError('');
+                setChartSourceMeta('');
+                setChartSupportResistance(null);
+                setChartRecommendation(null);
               }}
             >
               <Text style={styles.webviewCloseText}>Tutup</Text>
             </Pressable>
           </View>
 
-          {chartLoading ? (
-            <View style={styles.webviewLoadingContainer}>
-              <ActivityIndicator color="#38bdf8" size="large" />
-            </View>
-          ) : null}
+          <View style={styles.chartStyleSelectorRow}>
+            {(['daily', 'swing', 'scalping'] as const).map(style => {
+              const isActive = chartModalStyle === style;
+              return (
+                <Pressable
+                  key={style}
+                  onPress={() => handleChangeChartModalStyle(style)}
+                  style={[
+                    styles.chartStyleButton,
+                    isActive && styles.chartStyleButtonActive,
+                  ]}
+                  disabled={chartLoading}
+                >
+                  <Text
+                    style={[
+                      styles.chartStyleButtonText,
+                      isActive && styles.chartStyleButtonTextActive,
+                    ]}
+                  >
+                    {style.charAt(0).toUpperCase() + style.slice(1)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-          {chartSymbol ? (
-            <View style={styles.chartWrapper}>
-              <NativeTradingChart
-                candles={chartData}
-                symbol={chartSymbol}
-                interval={chartInterval}
-                onIntervalChange={handleChangeChartInterval}
-              />
-            </View>
-          ) : null}
+          <ScrollView style={styles.chartScrollView}>
+            {chartSourceMeta ? (
+              <View style={styles.chartMetaStrip}>
+                <Text style={styles.chartMetaText}>{chartSourceMeta}</Text>
+              </View>
+            ) : null}
 
-          {chartError ? (
-            <View style={styles.webviewErrorContainer}>
-              <Text style={styles.webviewErrorText}>{chartError}</Text>
-            </View>
-          ) : null}
+            {chartLoading ? (
+              <View style={styles.webviewLoadingContainer}>
+                <ActivityIndicator color="#38bdf8" size="large" />
+              </View>
+            ) : null}
+
+            {chartSymbol ? (
+              <View style={styles.chartWrapper}>
+                <NativeTradingChart
+                  candles={chartData}
+                  symbol={chartSymbol}
+                  interval={chartInterval}
+                  onIntervalChange={handleChangeChartInterval}
+                  supportResistance={chartSupportResistance ?? undefined}
+                />
+              </View>
+            ) : null}
+
+            {chartRecommendation ? (
+              <View style={styles.chartRecommendationCard}>
+                <Text style={styles.chartRecommendationTitle}>
+                  Recommendation {chartRecommendation.selectedStyle || '-'}
+                </Text>
+                <Text style={styles.chartRecommendationText}>
+                  Signal: {chartRecommendation.signal || '-'} | Bias:{' '}
+                  {chartRecommendation.marketBias || '-'}
+                </Text>
+                <Text style={styles.chartRecommendationText}>
+                  Entry:{' '}
+                  {chartRecommendation.entry !== undefined
+                    ? formatIDR(chartRecommendation.entry)
+                    : '-'}{' '}
+                  | TP:{' '}
+                  {chartRecommendation.takeProfit !== undefined
+                    ? formatIDR(chartRecommendation.takeProfit)
+                    : '-'}
+                </Text>
+                <Text style={styles.chartRecommendationText}>
+                  SL:{' '}
+                  {chartRecommendation.stopLoss !== undefined
+                    ? formatIDR(chartRecommendation.stopLoss)
+                    : '-'}{' '}
+                  | Cut Loss:{' '}
+                  {chartRecommendation.cutLoss !== undefined
+                    ? formatIDR(chartRecommendation.cutLoss)
+                    : '-'}
+                </Text>
+                <Text style={styles.chartRecommendationText}>
+                  Long/Short Score:{' '}
+                  {chartRecommendation.scoring?.longScore ?? '-'} /{' '}
+                  {chartRecommendation.scoring?.shortScore ?? '-'} | Confidence:{' '}
+                  {chartRecommendation.scoring?.confidence || '-'}
+                </Text>
+                <Text style={styles.chartRecommendationText}>
+                  ML Signal: {chartRecommendation.scoring?.mlSignal || '-'} | ML
+                  Prob BUY:{' '}
+                  {formatPercent(chartRecommendation.scoring?.mlProbabilityBuy)}
+                </Text>
+                {chartRecommendation.note ? (
+                  <Text style={styles.chartRecommendationNote}>
+                    {chartRecommendation.note}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            {chartSupportResistance ? (
+              <View style={styles.chartSrCard}>
+                <Text style={styles.chartSrTitle}>Support & Resistance</Text>
+                <Text style={styles.chartSrText}>
+                  Support ({chartSupportResistance.supports.length}):{' '}
+                  {formatLevelList(chartSupportResistance.supports)}
+                </Text>
+                <Text style={styles.chartSrText}>
+                  Resistance ({chartSupportResistance.resistances.length}):{' '}
+                  {formatLevelList(chartSupportResistance.resistances)}
+                </Text>
+                <Text style={styles.chartSrText}>
+                  Nearest S: {chartSupportResistance.nearestSupport ?? '-'} | R:{' '}
+                  {chartSupportResistance.nearestResistance ?? '-'}
+                </Text>
+              </View>
+            ) : null}
+
+            {chartError ? (
+              <View style={styles.webviewErrorContainer}>
+                <Text style={styles.webviewErrorText}>{chartError}</Text>
+              </View>
+            ) : null}
+          </ScrollView>
         </View>
       </Modal>
     </ScrollView>
@@ -1900,6 +1824,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#041014',
   },
+  chartStyleSelectorRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#0a1b23',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1d3f47',
+  },
+  chartStyleButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2d5267',
+    backgroundColor: '#112c3a',
+    alignItems: 'center',
+  },
+  chartStyleButtonActive: {
+    borderColor: '#38bdf8',
+    backgroundColor: '#14404d',
+  },
+  chartStyleButtonText: {
+    color: '#b7d9e4',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  chartStyleButtonTextActive: {
+    color: '#e6faff',
+  },
+  chartScrollView: {
+    flex: 1,
+  },
   chartWrapper: {
     flex: 1,
     padding: 12,
@@ -1929,6 +1886,67 @@ const styles = StyleSheet.create({
     color: '#faf5ff',
     fontWeight: '700',
     fontSize: 12,
+  },
+  chartMetaStrip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#0a1920',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1d3f47',
+  },
+  chartMetaText: {
+    color: '#8fd0e5',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  chartRecommendationCard: {
+    marginHorizontal: 12,
+    marginTop: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2b5967',
+    backgroundColor: '#0c2630',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 3,
+  },
+  chartRecommendationTitle: {
+    color: '#dff9ff',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  chartRecommendationText: {
+    color: '#b9ddec',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  chartRecommendationNote: {
+    color: '#8dd5ea',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  chartSrCard: {
+    marginHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#245361',
+    backgroundColor: '#0a202a',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 3,
+  },
+  chartSrTitle: {
+    color: '#dcf8ff',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  chartSrText: {
+    color: '#abd9e7',
+    fontSize: 11,
+    lineHeight: 16,
   },
   webviewLoadingContainer: {
     paddingVertical: 20,

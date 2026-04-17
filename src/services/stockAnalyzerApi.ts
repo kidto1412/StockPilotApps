@@ -230,16 +230,71 @@ export interface ChartCandle {
   volume: number;
 }
 
+export interface ChartSupportResistance {
+  supports: number[];
+  resistances: number[];
+  nearestSupport?: number;
+  nearestResistance?: number;
+}
+
+export interface ChartRecommendationSummary {
+  selectedStyle?: string;
+  selectedStrategyKey?: string;
+  marketBias?: string;
+  signal?: string;
+  entry?: number;
+  takeProfit?: number;
+  trailingStop?: number;
+  stopLoss?: number;
+  cutLoss?: number;
+  note?: string;
+  scoring?: {
+    longScore?: number;
+    shortScore?: number;
+    confidence?: string;
+    mlProbabilityBuy?: number;
+    mlSignal?: string;
+  };
+}
+
 export interface ChartDataResponse {
   symbol: string;
   interval: string;
   range: string;
+  candleSource?: string;
   source?: {
     provider?: string;
     range?: string;
     interval?: string;
   };
+  supportResistance?: ChartSupportResistance;
+  recommendation?: ChartRecommendationSummary;
   candles: ChartCandle[];
+}
+
+export interface ChartQueryParams {
+  interval?: '1m' | '5m' | '15m' | '30m' | '60m' | '4h' | '1d' | '1w' | string;
+  range?:
+    | '1d'
+    | '5d'
+    | '1mo'
+    | '3mo'
+    | '6mo'
+    | '1y'
+    | '2y'
+    | '5y'
+    | '10y'
+    | string;
+  limit?: number;
+  style?: 'daily' | 'swing' | 'scalping' | string;
+  rsiPeriod?: number;
+  macdFast?: number;
+  macdSlow?: number;
+  macdSignal?: number;
+  stochKPeriod?: number;
+  stochKSmooth?: number;
+  stochDPeriod?: number;
+  emaPeriods?: string;
 }
 
 const toTimestamp = (value: unknown): number => {
@@ -317,7 +372,7 @@ const parseCandlesFromUnknown = (payload: unknown): ChartCandle[] => {
     const row = entry as Record<string, unknown>;
     return {
       timestamp: toTimestamp(
-        row.timestamp ?? row.time ?? row.date ?? row.datetime,
+        row.timestamp ?? row.time ?? row.date ?? row.datetime ?? row.t,
       ),
       open: toNumber(row.open ?? row.o),
       high: toNumber(row.high ?? row.h),
@@ -354,6 +409,177 @@ const parseCandlesFromUnknown = (payload: unknown): ChartCandle[] => {
 
 const toRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+
+const pickString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.trim() !== '' ? value : undefined;
+
+const parseLevelValue = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const normalized = value.replace(/,/g, '');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const candidates = [
+      record.level,
+      record.price,
+      record.value,
+      record.support,
+      record.resistance,
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = parseLevelValue(candidate);
+      if (parsed !== null) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+};
+
+const parseLevelArray = (value: unknown): number[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(item => parseLevelValue(item))
+    .filter((item): item is number => item !== null);
+};
+
+const parseSupportResistance = (
+  value: unknown,
+): ChartSupportResistance | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  const supportCandidates = [
+    parseLevelArray(record.supports),
+    parseLevelArray(record.supportLevels),
+    parseLevelArray(record.support),
+  ];
+  const resistanceCandidates = [
+    parseLevelArray(record.resistances),
+    parseLevelArray(record.resistanceLevels),
+    parseLevelArray(record.resistance),
+  ];
+  const supports = supportCandidates.find(levels => levels.length > 0) ?? [];
+  const resistances =
+    resistanceCandidates.find(levels => levels.length > 0) ?? [];
+  const nearestSupport =
+    parseLevelValue(record.nearestSupport) ??
+    parseLevelValue(record.nearest_support) ??
+    parseLevelValue(record.closestSupport) ??
+    parseLevelValue(record.closest_support);
+  const nearestResistance =
+    parseLevelValue(record.nearestResistance) ??
+    parseLevelValue(record.nearest_resistance) ??
+    parseLevelValue(record.closestResistance) ??
+    parseLevelValue(record.closest_resistance);
+
+  const nestedSupportResistance =
+    parseSupportResistance(record.supportResistance) ??
+    parseSupportResistance(record.support_resistance) ??
+    parseSupportResistance(record.levels);
+
+  const mergedSupports = [
+    ...supports,
+    ...(nestedSupportResistance?.supports ?? []),
+  ];
+  const mergedResistances = [
+    ...resistances,
+    ...(nestedSupportResistance?.resistances ?? []),
+  ];
+
+  if (!mergedSupports.length && !mergedResistances.length) {
+    return undefined;
+  }
+
+  const uniqSortedSupports = Array.from(new Set(mergedSupports)).sort(
+    (a, b) => a - b,
+  );
+  const uniqSortedResistances = Array.from(new Set(mergedResistances)).sort(
+    (a, b) => a - b,
+  );
+
+  return {
+    supports: uniqSortedSupports,
+    resistances: uniqSortedResistances,
+    nearestSupport:
+      nearestSupport !== null && Number.isFinite(nearestSupport)
+        ? nearestSupport
+        : undefined,
+    nearestResistance:
+      nearestResistance !== null && Number.isFinite(nearestResistance)
+        ? nearestResistance
+        : undefined,
+  };
+};
+
+const parseOptionalNumber = (value: unknown): number | undefined => {
+  const parsed = parseLevelValue(value);
+  return parsed === null ? undefined : parsed;
+};
+
+const parseChartRecommendation = (
+  value: unknown,
+): ChartRecommendationSummary | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const scoring = toRecord(record.scoring);
+  const summary: ChartRecommendationSummary = {
+    selectedStyle: pickString(record.selectedStyle),
+    selectedStrategyKey: pickString(record.selectedStrategyKey),
+    marketBias: pickString(record.marketBias),
+    signal: pickString(record.signal),
+    entry: parseOptionalNumber(record.entry),
+    takeProfit: parseOptionalNumber(record.takeProfit),
+    trailingStop: parseOptionalNumber(record.trailingStop),
+    stopLoss: parseOptionalNumber(record.stopLoss),
+    cutLoss: parseOptionalNumber(record.cutLoss),
+    note: pickString(record.note),
+    scoring: {
+      longScore: parseOptionalNumber(scoring.longScore),
+      shortScore: parseOptionalNumber(scoring.shortScore),
+      confidence: pickString(scoring.confidence),
+      mlProbabilityBuy: parseOptionalNumber(scoring.mlProbabilityBuy),
+      mlSignal: pickString(scoring.mlSignal),
+    },
+  };
+
+  const hasMainValues =
+    Boolean(summary.signal) ||
+    summary.entry !== undefined ||
+    summary.takeProfit !== undefined ||
+    summary.stopLoss !== undefined ||
+    summary.cutLoss !== undefined;
+  const hasScoringValues =
+    summary.scoring?.longScore !== undefined ||
+    summary.scoring?.shortScore !== undefined ||
+    Boolean(summary.scoring?.confidence) ||
+    summary.scoring?.mlProbabilityBuy !== undefined ||
+    Boolean(summary.scoring?.mlSignal);
+
+  if (!hasMainValues && !hasScoringValues) {
+    return undefined;
+  }
+
+  return summary;
+};
 
 const toArray = <T>(value: unknown): T[] => {
   if (Array.isArray(value)) {
@@ -488,9 +714,10 @@ const unwrapResponse = <T>(payload: APIResponse<T> | T): T => {
   if (
     payload &&
     typeof payload === 'object' &&
-    'status' in (payload as APIResponse<T>) &&
-    'message' in (payload as APIResponse<T>) &&
-    'data' in (payload as APIResponse<T>)
+    'data' in (payload as APIResponse<T>) &&
+    ('status' in (payload as APIResponse<T>) ||
+      'success' in (payload as Record<string, unknown>) ||
+      'statusCode' in (payload as Record<string, unknown>))
   ) {
     return (payload as APIResponse<T>).data;
   }
@@ -524,6 +751,19 @@ export const stockAnalyzerApi = {
     >(`${STOCKPILOT_PREFIX}/stock-analysis/market-data/${symbol}`, { params });
 
     return unwrapResponse(response.data);
+  },
+
+  getMarketDataList: async (params?: {
+    limit?: number;
+    source?: string;
+  }): Promise<MarketDataResponse[]> => {
+    const response = await api.get<unknown>(
+      `${STOCKPILOT_PREFIX}/stock-analysis/market-data`,
+      { params },
+    );
+
+    const payload = unwrapResponse(response.data as any);
+    return toArray<MarketDataResponse>(payload);
   },
 
   getRecommendation: async (
@@ -561,7 +801,7 @@ export const stockAnalyzerApi = {
 
   getChartData: async (
     symbol: string,
-    params?: { interval?: string; range?: string; limit?: number },
+    params?: ChartQueryParams,
   ): Promise<ChartDataResponse> => {
     const normalizedSymbol = symbol.trim().toUpperCase();
     const interval = params?.interval ?? '1d';
@@ -570,34 +810,231 @@ export const stockAnalyzerApi = {
       interval,
       range,
       ...(params?.limit ? { limit: params.limit } : {}),
+      ...(params?.style ? { style: params.style } : {}),
+      ...(typeof params?.rsiPeriod === 'number'
+        ? { rsiPeriod: params.rsiPeriod }
+        : {}),
+      ...(typeof params?.macdFast === 'number'
+        ? { macdFast: params.macdFast }
+        : {}),
+      ...(typeof params?.macdSlow === 'number'
+        ? { macdSlow: params.macdSlow }
+        : {}),
+      ...(typeof params?.macdSignal === 'number'
+        ? { macdSignal: params.macdSignal }
+        : {}),
+      ...(typeof params?.stochKPeriod === 'number'
+        ? { stochKPeriod: params.stochKPeriod }
+        : {}),
+      ...(typeof params?.stochKSmooth === 'number'
+        ? { stochKSmooth: params.stochKSmooth }
+        : {}),
+      ...(typeof params?.stochDPeriod === 'number'
+        ? { stochDPeriod: params.stochDPeriod }
+        : {}),
+      ...(params?.emaPeriods ? { emaPeriods: params.emaPeriods } : {}),
     };
 
-    const response = await api.get<unknown>(
-      `${STOCKPILOT_PREFIX}/stock-analysis/market-data/${normalizedSymbol}`,
-      { params: query },
+    console.log(
+      '[chart-fetch-request]',
+      JSON.stringify({
+        symbol: normalizedSymbol,
+        endpoint: `${STOCKPILOT_PREFIX}/stock-analysis/chart/${normalizedSymbol}`,
+        query,
+      }),
     );
-    const payload = response.data;
 
-    const unwrappedPayload = unwrapResponse(payload as any) as Record<
-      string,
-      unknown
-    >;
-    const source =
-      unwrappedPayload.source && typeof unwrappedPayload.source === 'object'
-        ? (unwrappedPayload.source as ChartDataResponse['source'])
-        : undefined;
+    try {
+      const response = await api.get<unknown>(
+        `${STOCKPILOT_PREFIX}/stock-analysis/chart/${normalizedSymbol}`,
+        { params: query },
+      );
+      const payload = response.data;
 
-    return {
-      symbol:
-        (typeof unwrappedPayload.symbol === 'string'
-          ? unwrappedPayload.symbol
-          : normalizedSymbol) ?? normalizedSymbol,
-      interval:
-        typeof source?.interval === 'string' ? source.interval : interval,
-      range: typeof source?.range === 'string' ? source.range : range,
-      source,
-      candles: parseCandlesFromUnknown(unwrappedPayload),
-    };
+      const unwrappedPayload = unwrapResponse(payload as any) as Record<
+        string,
+        unknown
+      >;
+      const timeframe = toRecord(unwrappedPayload.timeframe);
+      const metadata = toRecord(unwrappedPayload.metadata);
+      const source =
+        unwrappedPayload.source && typeof unwrappedPayload.source === 'object'
+          ? (unwrappedPayload.source as ChartDataResponse['source'])
+          : undefined;
+      const rootPayload =
+        payload && typeof payload === 'object'
+          ? (payload as Record<string, unknown>)
+          : {};
+      const rootData = toRecord(rootPayload.data);
+      const payloadCandidates = [
+        unwrappedPayload,
+        toRecord(unwrappedPayload.data),
+        toRecord(unwrappedPayload.analysis),
+        toRecord(unwrappedPayload.result),
+        toRecord(unwrappedPayload.output),
+        rootPayload,
+        rootData,
+        toRecord(rootPayload.analysis),
+        toRecord(rootPayload.result),
+        toRecord(rootPayload.output),
+      ].filter(candidate => Object.keys(candidate).length > 0);
+      const payloadShapeDiagnostics = payloadCandidates.map(
+        (candidate, index) => {
+          const indicators = toRecord(candidate.indicators);
+          return {
+            index,
+            hasSupportResistanceKey:
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'supportResistance',
+              ) ||
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'support_resistance',
+              ) ||
+              Object.prototype.hasOwnProperty.call(candidate, 'levels') ||
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'supportAndResistance',
+              ) ||
+              Object.prototype.hasOwnProperty.call(candidate, 'srLevels') ||
+              Object.prototype.hasOwnProperty.call(
+                indicators,
+                'supportResistance',
+              ) ||
+              Object.prototype.hasOwnProperty.call(
+                indicators,
+                'support_resistance',
+              ),
+            hasRecommendationKey:
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'recommendation',
+              ) ||
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'recommendations',
+              ) ||
+              Object.prototype.hasOwnProperty.call(candidate, 'reco') ||
+              Object.prototype.hasOwnProperty.call(
+                candidate,
+                'signalRecommendation',
+              ),
+            topKeys: Object.keys(candidate).slice(0, 10),
+          };
+        },
+      );
+      const candleSource =
+        pickString(unwrappedPayload.candleSource) ??
+        pickString(unwrappedPayload.candle_source) ??
+        pickString(unwrappedPayload.dataset) ??
+        pickString(unwrappedPayload.dataSource) ??
+        pickString(unwrappedPayload.source) ??
+        pickString(metadata.candleSource) ??
+        pickString(metadata.dataset) ??
+        pickString(toRecord(unwrappedPayload.source).candleSource) ??
+        pickString(toRecord(unwrappedPayload.source).type);
+      const supportResistance = payloadCandidates
+        .map(candidate => {
+          const indicators = toRecord(candidate.indicators);
+          return (
+            parseSupportResistance(candidate.supportResistance) ??
+            parseSupportResistance(candidate.support_resistance) ??
+            parseSupportResistance(candidate.levels) ??
+            parseSupportResistance(candidate.supportAndResistance) ??
+            parseSupportResistance(candidate.srLevels) ??
+            parseSupportResistance(indicators.supportResistance) ??
+            parseSupportResistance(indicators.support_resistance)
+          );
+        })
+        .find(Boolean);
+      const recommendation = payloadCandidates
+        .map(candidate => {
+          const nestedRecommendation =
+            parseChartRecommendation(candidate.recommendation) ??
+            parseChartRecommendation(candidate.recommendations) ??
+            parseChartRecommendation(candidate.reco) ??
+            parseChartRecommendation(candidate.signalRecommendation);
+
+          return nestedRecommendation;
+        })
+        .find(Boolean);
+
+      const normalizedResponse: ChartDataResponse = {
+        symbol:
+          (typeof unwrappedPayload.symbol === 'string'
+            ? unwrappedPayload.symbol
+            : normalizedSymbol) ?? normalizedSymbol,
+        interval:
+          typeof timeframe.interval === 'string'
+            ? timeframe.interval
+            : typeof source?.interval === 'string'
+              ? source.interval
+              : interval,
+        range:
+          typeof timeframe.range === 'string'
+            ? timeframe.range
+            : typeof source?.range === 'string'
+              ? source.range
+              : range,
+        candleSource,
+        source,
+        supportResistance,
+        recommendation,
+        candles: parseCandlesFromUnknown(unwrappedPayload),
+      };
+
+      if (
+        !normalizedResponse.supportResistance ||
+        !normalizedResponse.recommendation
+      ) {
+        console.warn(
+          '[chart-fetch-missing-fields]',
+          JSON.stringify({
+            symbol: normalizedResponse.symbol,
+            hasSupportResistance: Boolean(normalizedResponse.supportResistance),
+            hasRecommendation: Boolean(normalizedResponse.recommendation),
+            supportCount:
+              normalizedResponse.supportResistance?.supports.length ?? 0,
+            resistanceCount:
+              normalizedResponse.supportResistance?.resistances.length ?? 0,
+            recommendationSignal:
+              normalizedResponse.recommendation?.signal ?? null,
+            candidateCount: payloadCandidates.length,
+            payloadShapeDiagnostics,
+          }),
+        );
+      }
+
+      console.log(
+        '[chart-fetch-response]',
+        JSON.stringify({
+          symbol: normalizedResponse.symbol,
+          interval: normalizedResponse.interval,
+          range: normalizedResponse.range,
+          candleSource: normalizedResponse.candleSource,
+          provider: normalizedResponse.source?.provider,
+          supportLevels: normalizedResponse.supportResistance?.supports.length,
+          resistanceLevels:
+            normalizedResponse.supportResistance?.resistances.length,
+          recommendationSignal: normalizedResponse.recommendation?.signal,
+          candleCount: normalizedResponse.candles.length,
+        }),
+      );
+
+      return normalizedResponse;
+    } catch (error) {
+      console.error(
+        '[chart-fetch-error]',
+        JSON.stringify({
+          symbol: normalizedSymbol,
+          interval,
+          range,
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      );
+      throw error;
+    }
   },
 
   createRecommendationStream: (
