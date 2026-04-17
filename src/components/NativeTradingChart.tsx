@@ -67,9 +67,11 @@ const dateFormatter = new Intl.DateTimeFormat('id-ID', {
   month: 'short',
 });
 
-const formatCompactPrice = (value: number) => compactPriceFormatter.format(value);
+const formatCompactPrice = (value: number) =>
+  compactPriceFormatter.format(value);
 
-const formatDate = (timestamp: number) => dateFormatter.format(new Date(timestamp));
+const formatDate = (timestamp: number) =>
+  dateFormatter.format(new Date(timestamp));
 
 const buildEmaSeries = (candles: ChartCandle[], period: number) => {
   if (!candles.length) {
@@ -528,7 +530,9 @@ function NativeTradingChart({
       : Math.max(0, candles.length - 1);
 
   const selectedMacd =
-    showMacd && selectedGlobalIndex >= 0 ? macdSeries[selectedGlobalIndex] : null;
+    showMacd && selectedGlobalIndex >= 0
+      ? macdSeries[selectedGlobalIndex]
+      : null;
   const selectedStochastic =
     showStochastic && selectedGlobalIndex >= 0
       ? stochasticSeries[selectedGlobalIndex]
