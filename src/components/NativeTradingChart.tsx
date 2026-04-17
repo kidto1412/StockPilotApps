@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import {
   LayoutChangeEvent,
   PanResponder,
@@ -57,17 +57,19 @@ const normalizeIntervalValue = (value: string) => {
 const getIntervalLabel = (value: string) =>
   intervalLabelMap[value] ?? value.toUpperCase();
 
-const formatCompactPrice = (value: number) =>
-  new Intl.NumberFormat('id-ID', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+const compactPriceFormatter = new Intl.NumberFormat('id-ID', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
 
-const formatDate = (timestamp: number) =>
-  new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit',
-    month: 'short',
-  }).format(new Date(timestamp));
+const dateFormatter = new Intl.DateTimeFormat('id-ID', {
+  day: '2-digit',
+  month: 'short',
+});
+
+const formatCompactPrice = (value: number) => compactPriceFormatter.format(value);
+
+const formatDate = (timestamp: number) => dateFormatter.format(new Date(timestamp));
 
 const buildEmaSeries = (candles: ChartCandle[], period: number) => {
   if (!candles.length) {
@@ -109,19 +111,70 @@ const buildSmaSeries = (
   }
 
   const result: Array<number | null> = Array(values.length).fill(null);
+  let rollingSum = 0;
+  let validCount = 0;
 
   for (let index = 0; index < values.length; index += 1) {
-    if (index < period - 1) {
-      continue;
+    const incoming = values[index];
+    if (incoming !== null) {
+      rollingSum += incoming;
+      validCount += 1;
     }
 
-    const window = values.slice(index - period + 1, index + 1);
-    if (window.some(value => value === null)) {
-      continue;
+    if (index >= period) {
+      const outgoing = values[index - period];
+      if (outgoing !== null) {
+        rollingSum -= outgoing;
+        validCount -= 1;
+      }
     }
 
-    const sum = window.reduce((acc, value) => acc + (value ?? 0), 0);
-    result[index] = sum / period;
+    if (index >= period - 1 && validCount === period) {
+      result[index] = rollingSum / period;
+    }
+  }
+
+  return result;
+};
+
+type RollingExtremaMode = 'max' | 'min';
+
+const buildRollingExtremaSeries = (
+  values: number[],
+  period: number,
+  mode: RollingExtremaMode,
+): Array<number | null> => {
+  if (!values.length || period <= 0) {
+    return [];
+  }
+
+  const result: Array<number | null> = Array(values.length).fill(null);
+  const deque: Array<{ index: number; value: number }> = [];
+
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+
+    while (deque.length) {
+      const tail = deque[deque.length - 1];
+      const shouldRemoveTail =
+        mode === 'max' ? tail.value <= value : tail.value >= value;
+
+      if (!shouldRemoveTail) {
+        break;
+      }
+
+      deque.pop();
+    }
+
+    deque.push({ index, value });
+
+    while (deque.length && deque[0].index <= index - period) {
+      deque.shift();
+    }
+
+    if (index >= period - 1 && deque.length) {
+      result[index] = deque[0].value;
+    }
   }
 
   return result;
@@ -184,27 +237,26 @@ const buildStochasticSeries = (
     return [];
   }
 
-  const rawK: Array<number | null> = candles.map((_, index) => {
-    if (index < kPeriod - 1) {
+  const highs = candles.map(candle => candle.high);
+  const lows = candles.map(candle => candle.low);
+  const highestHighs = buildRollingExtremaSeries(highs, kPeriod, 'max');
+  const lowestLows = buildRollingExtremaSeries(lows, kPeriod, 'min');
+
+  const rawK: Array<number | null> = candles.map((candle, index) => {
+    const highest = highestHighs[index];
+    const lowest = lowestLows[index];
+
+    if (highest === null || lowest === null) {
       return null;
     }
 
-    const window = candles.slice(index - kPeriod + 1, index + 1);
-    const highest = window.reduce(
-      (acc, candle) => Math.max(acc, candle.high),
-      Number.NEGATIVE_INFINITY,
-    );
-    const lowest = window.reduce(
-      (acc, candle) => Math.min(acc, candle.low),
-      Number.POSITIVE_INFINITY,
-    );
     const range = highest - lowest;
 
     if (!Number.isFinite(range) || range <= 0) {
       return 50;
     }
 
-    return ((candles[index].close - lowest) / range) * 100;
+    return ((candle.close - lowest) / range) * 100;
   });
 
   const smoothK = buildSmaSeries(rawK, kSmooth);
@@ -236,7 +288,7 @@ const parsePeriodInput = (
   return Math.min(max, Math.max(min, parsed));
 };
 
-export default function NativeTradingChart({
+function NativeTradingChart({
   candles,
   symbol,
   interval,
@@ -476,27 +528,37 @@ export default function NativeTradingChart({
       : Math.max(0, candles.length - 1);
 
   const selectedMacd =
-    selectedGlobalIndex >= 0 ? macdSeries[selectedGlobalIndex] : null;
+    showMacd && selectedGlobalIndex >= 0 ? macdSeries[selectedGlobalIndex] : null;
   const selectedStochastic =
-    selectedGlobalIndex >= 0 ? stochasticSeries[selectedGlobalIndex] : null;
+    showStochastic && selectedGlobalIndex >= 0
+      ? stochasticSeries[selectedGlobalIndex]
+      : null;
 
-  const visibleMacd = useMemo(
-    () =>
-      visibleCandles.map(
-        (_, index) => macdSeries[visibleStartIndex + index] ?? null,
-      ),
-    [macdSeries, visibleCandles, visibleStartIndex],
-  );
+  const visibleMacd = useMemo(() => {
+    if (!showMacd) {
+      return [] as Array<MacdPoint | null>;
+    }
 
-  const visibleStochastic = useMemo(
-    () =>
-      visibleCandles.map(
-        (_, index) => stochasticSeries[visibleStartIndex + index] ?? null,
-      ),
-    [stochasticSeries, visibleCandles, visibleStartIndex],
-  );
+    return visibleCandles.map(
+      (_, index) => macdSeries[visibleStartIndex + index] ?? null,
+    );
+  }, [macdSeries, showMacd, visibleCandles, visibleStartIndex]);
+
+  const visibleStochastic = useMemo(() => {
+    if (!showStochastic) {
+      return [] as Array<StochPoint | null>;
+    }
+
+    return visibleCandles.map(
+      (_, index) => stochasticSeries[visibleStartIndex + index] ?? null,
+    );
+  }, [showStochastic, stochasticSeries, visibleCandles, visibleStartIndex]);
 
   const macdRangeAbs = useMemo(() => {
+    if (!showMacd) {
+      return 0.0001;
+    }
+
     const magnitudes = visibleMacd
       .filter((point): point is MacdPoint => point !== null)
       .flatMap(point => [
@@ -531,6 +593,10 @@ export default function NativeTradingChart({
   const nearestResistance = Number(supportResistance?.nearestResistance);
 
   useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+
     const srDiagnostics = {
       symbol,
       interval,
@@ -1255,6 +1321,8 @@ export default function NativeTradingChart({
     </ScrollView>
   );
 }
+
+export default memo(NativeTradingChart);
 
 const styles = StyleSheet.create({
   wrapper: {
